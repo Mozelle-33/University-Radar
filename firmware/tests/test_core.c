@@ -37,7 +37,14 @@ int main(void) {
   wire_rx_t rx; wire_reset(&rx);
   const char *json = "{\"cmd\":\"status\",\"protocolVersion\":1}";
   size_t length = strlen(json), frames = (length + 13) / 14;
-  for (uint8_t i = 0; i < frames; i++) { uint8_t f[20]; size_t bytes = wire_encode_frame(42, json, length, i, f); f[1] = 1; assert(bytes <= 20); int result = wire_accept(&rx, f, bytes, 1000 + i); assert(result == (i + 1 == frames)); }
+  for (uint8_t i = 0; i < frames; i++) {
+    uint8_t f[20];
+    size_t bytes = wire_encode_frame(42, json, length, i, f);
+    f[1] = 1;
+    assert(bytes <= 20);
+    int result = wire_accept(&rx, f, bytes, 1000 + i);
+    assert(result == ((size_t)i + 1u == frames));
+  }
   assert(rx.id == 42); assert(!strcmp(rx.json, json));
   uint8_t f[20]; size_t bytes = wire_encode_frame(42, json, length, 0, f); f[1] = 1; f[5] = 0; assert(wire_accept(&rx, f, bytes, 2000) == -1);
   bytes = wire_encode_frame(42, json, length, 0, f); f[1] = 1; assert(wire_accept(&rx, f, bytes, 2000) == 0);

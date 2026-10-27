@@ -51,6 +51,11 @@ patched 4.1.12 line, and the Xcode parser's indirect UUID dependency was pinned 
 11.1.1 using an npm override. Unit tests, builds, native sync, Xcode project parsing
 and UUID v4 generation were rechecked afterward. The lockfile records the versions.
 
+The first Linux CI run also caught a signed/unsigned comparison warning in the
+C test harness. Its frame-count comparison now uses `size_t` explicitly; the
+assertion and production algorithm remain unchanged. The C checks were rerun
+after this portability correction.
+
 Advisories: [Vitest mock registration](https://github.com/advisories/GHSA-qxg6-89mg-rqv8),
 [Vitest Windows path bypass](https://github.com/advisories/GHSA-xp26-3454-mjgp),
 [UUID buffer bounds](https://github.com/advisories/GHSA-w5hq-g745-h8pq).
