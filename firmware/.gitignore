@@ -1,0 +1,6 @@
+.pio/
+.venv/
+build/
+*.log
+tests/*.exe
+tests/*.pdb

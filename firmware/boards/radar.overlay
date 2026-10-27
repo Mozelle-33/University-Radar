@@ -1,0 +1,35 @@
+/* Custom nRF52832-QFAA, schematic 2026-10-09. All three LEDs sink current. */
+&led0 { gpios = <&gpio0 25 GPIO_ACTIVE_LOW>; };
+&led1 { gpios = <&gpio0 26 GPIO_ACTIVE_LOW>; };
+&led2 { gpios = <&gpio0 27 GPIO_ACTIVE_LOW>; };
+&led3 { status = "disabled"; };
+&button0 { status = "disabled"; };
+&button1 { status = "disabled"; };
+&button2 { status = "disabled"; };
+&button3 { status = "disabled"; };
+&uart0 { status = "disabled"; };
+&spi0 { status = "disabled"; };
+&spi1 { status = "disabled"; };
+&spi2 { status = "disabled"; };
+&i2c0 { status = "disabled"; };
+&i2c1 { status = "disabled"; };
+&pwm0 { status = "disabled"; };
+&adc { status = "okay"; };
+/* Replace the DK's unused MCUboot/OTA slots. The image starts at 0; NVS owns
+ * the final 24 KiB and cannot be overwritten by the linker. */
+&flash0 {
+  /delete-node/ partitions;
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
+    slot0_partition: partition@0 {
+      label = "image-0";
+      reg = <0x00000000 0x0007a000>;
+    };
+    storage_partition: partition@7a000 {
+      label = "storage";
+      reg = <0x0007a000 0x00006000>;
+    };
+  };
+};

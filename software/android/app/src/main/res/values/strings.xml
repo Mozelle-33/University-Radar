@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">University Radar</string>
+    <string name="title_activity_main">University Radar</string>
+    <string name="package_name">com.universityradar.app</string>
+    <string name="custom_url_scheme">com.universityradar.app</string>
+</resources>

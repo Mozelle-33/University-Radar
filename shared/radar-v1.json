@@ -1,0 +1,27 @@
+{
+  "protocolVersion": 1,
+  "dictionaryVersion": 1,
+  "serviceUuid": "c0130001-9f39-4ae4-8fae-7d5a6b810001",
+  "writeUuid": "c0130002-9f39-4ae4-8fae-7d5a6b810001",
+  "notifyUuid": "c0130003-9f39-4ae4-8fae-7d5a6b810001",
+  "maxMessageBytes": 3072,
+  "tags": [
+    {"id":1,"name":"嵌入式开发","group":"研究"},
+    {"id":2,"name":"人工智能","group":"研究"},
+    {"id":3,"name":"产品设计","group":"研究"},
+    {"id":4,"name":"机器人","group":"研究"},
+    {"id":5,"name":"摄影","group":"兴趣"},
+    {"id":6,"name":"徒步","group":"兴趣"},
+    {"id":7,"name":"音乐","group":"兴趣"},
+    {"id":8,"name":"羽毛球","group":"兴趣"},
+    {"id":9,"name":"科技创业","group":"职业"},
+    {"id":10,"name":"科研合作","group":"职业"},
+    {"id":11,"name":"求职交流","group":"职业"},
+    {"id":12,"name":"行业分享","group":"职业"}
+  ],
+  "schools": [
+    {"id":1,"name":"西交利物浦大学"},
+    {"id":2,"name":"利物浦大学"},
+    {"id":3,"name":"西安交通大学"}
+  ]
+}

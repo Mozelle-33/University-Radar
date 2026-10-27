@@ -1,0 +1,32 @@
+name: Validate development preview
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  web-and-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: software/package-lock.json
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: npm ci
+        working-directory: software
+      - run: npm test
+        working-directory: software
+      - run: npm run native:sync
+        working-directory: software
+      - run: npm audit --audit-level=moderate
+        working-directory: software
+      - run: python scripts/generate_protocol.py --check
+      - name: Compile and run actual firmware core
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror -Ifirmware/include firmware/src/radar_core.c firmware/src/wire.c firmware/tests/test_core.c -o "$RUNNER_TEMP/radar-core-tests"
+          "$RUNNER_TEMP/radar-core-tests"

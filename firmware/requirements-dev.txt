@@ -1,0 +1,7 @@
+# PlatformIO installs the pinned Zephyr SDK's additional Python requirements.
+platformio==6.2.0
+PyYAML==6.0.3
+pykwalify==1.8.0
+setuptools==80.9.0
+# Optional portable C test compiler on Windows; system cc/gcc/clang also works.
+ziglang==0.16.0

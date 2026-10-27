@@ -1,0 +1,37 @@
+{
+  "hex_records": 9807,
+  "hex_checksum": "PASS",
+  "binary_matches_hex": true,
+  "application_start": 0,
+  "highest_address": 156731,
+  "nvs_start": 499712,
+  "initial_stack": "0x20007400",
+  "reset_handler": "0x5fe5",
+  "firmware_bytes": 156732,
+  "native_metadata": "PASS",
+  "firmware_sha256": "a76cc322b9356fc25f67abecd731fcaf9fe6e8cbedf8271ae835255b8a679204",
+  "real_device_tests": "NOT RUN",
+  "android_apk_build": "NOT RUN",
+  "ios_ipa_build": "NOT RUN",
+  "developmentDate": "2026-10-22",
+  "verificationDate": "2026-10-27",
+  "courseWeek": 6,
+  "releaseKind": "development-preview",
+  "webTests": {
+    "passed": 18,
+    "files": 3
+  },
+  "checks": {
+    "webBuild": "PASS",
+    "nativeSync": "PASS",
+    "firmwareCore": "PASS",
+    "firmwareBuild": "PASS",
+    "protocolDictionary": "PASS",
+    "xcodeParser": "PASS",
+    "browserDemoAndMobileSearch": "PASS",
+    "browserConsoleErrors": 0,
+    "npmAuditKnownVulnerabilities": 0
+  },
+  "aiAssisted": true,
+  "humanSignoff": "NOT CLAIMED"
+}

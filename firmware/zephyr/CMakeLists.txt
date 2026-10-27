@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.13.1)
+set(DTC_OVERLAY_FILE "${CMAKE_CURRENT_LIST_DIR}/../boards/radar.overlay")
+include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+project(university_radar)
+target_sources(app PRIVATE ../src/main.c ../src/radar_core.c ../src/wire.c)
+target_include_directories(app PRIVATE ../include)
