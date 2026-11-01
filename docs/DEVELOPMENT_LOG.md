@@ -143,3 +143,29 @@ read-only check also failed. No baseline was written, no chip recovery/erase was
 performed and no new pairing/GATT success is claimed. Stable wiring and actual
 board-supply measurements are required before further device writes; see the
 dated hardware record for the exact tested scope.
+
+### Resumed after physical reset, 21:00 on 1 November
+
+RST restored SWD access. The official DIS peripheral baseline was programmed,
+connected on Windows and returned `Zephyr Model`; the project image was then
+restored and read-back verified. After a temporary RAM-only commissioning
+compatibility step on this already-enumerated computer, encrypted project GATT
+commands passed: status, confirmed configuration writes, time sync, an empty
+encounter page, and enabling/pausing discovery.
+
+A normal reset restored project parameters and retained the binding/config.
+The diagnostic client recovered one Database Out Of Sync response by reading
+the GATT database hash before resubscribing. Later, the user manually granted
+the Edge page access to UR-Radar; the actual web client connected and received
+its configuration acknowledgement, clearing the time-sync warning.
+
+These results apply to one board on this computer, with the documented setup
+history. A pristine first-time pairing path on a new computer is not proven.
+The device remains bound to this PC and discovery is paused; there are no real
+two-board encounter records. Android/iPhone, long-duration power, battery
+calibration and two-device acceptance remain pending. See HARDWARE_BRINGUP.md.
+
+The Windows launcher now uses port 5174 to preserve the origin used for the
+successful browser permission grant. No production firmware algorithm,
+encryption setting or permanent identity-address policy changed in this resumed
+test; temporary diagnostic parameters were removed by normal reset.

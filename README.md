@@ -1,6 +1,6 @@
 # University Radar
 
-**Development preview — one-board flashing and discovery checked; pairing and full device acceptance remain pending.**
+**Development preview — one-board Windows encrypted GATT and Edge sync checked; new-host commissioning and full device acceptance remain pending.**
 
 University Radar explores offline, consent-based connections in university settings:
 shared interests and research directions before graduation, and school, discipline,
@@ -44,6 +44,12 @@ npm audit
 `software/dist` is a static web build. Native BLE uses the Capacitor projects;
 browser BLE requires a secure context and a compatible browser.
 
+For the Windows hardware-test space, use `npm run dev -- --port 5174` and open
+`http://127.0.0.1:5174`, or run the root `启动雷达.cmd`. Port 5174 is the origin
+used for the successful Edge permission grant and real-board sync. Browser
+permissions/local data belong to their origin; the ordinary demo on port 5173
+has its own local space.
+
 ## Firmware and native platforms
 
 See [firmware build and pin configuration](firmware/README.md),
@@ -65,10 +71,13 @@ on real phones.
 ## Validation status
 
 Hardware follow-up on 29 October and 1 November: one nRF52832-QFAA board was
-backed up, programmed and read-back verified using ST-LINK/V2. Firmware v0.1.1
-makes its name/service visible in the setup advertisement. Windows pairing and
-GATT sync are still unresolved; see [the hardware record](docs/HARDWARE_BRINGUP.md).
-Two-board matching, real-phone tests and battery/runtime claims remain unverified.
+backed up, programmed and read-back verified using ST-LINK/V2. On this computer,
+encrypted GATT commands, configuration/time sync, empty pagination and the Edge
+web client's real-device sync passed. Initial commissioning used a documented
+compatibility step after a standard DIS baseline; pristine new-host pairing is
+not yet proven. See [the hardware record](docs/HARDWARE_BRINGUP.md).
+Discovery is paused and this PC occupies the single bond slot. Two-board matching,
+real-phone tests and battery/runtime claims remain unverified.
 
 Rechecked on **27 October 2026**, for implementation developed in course Week 6:
 
