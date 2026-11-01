@@ -116,3 +116,19 @@ Validation rerun on 1 November:
 Raw logs, device addresses, unique IDs, pairing information and original firmware
 backups remain local and ignored by Git. Source-only publication does not include
 the course evidence directories or change their Week 6 attribution.
+
+### CI dependency repair on 1 November
+
+The first follow-up CI run passed tests/build/native sync but failed its existing
+dependency audit. New advisories affected `glob` <=14.0.1 and `minimatch` <11.0.1
+through Capacitor CLI's `rimraf` dependency. A targeted `glob` 14.0.3 override
+selects the patched dependency chain while retaining Capacitor 8 and the existing
+Xcode UUID override. The audit threshold was not relaxed.
+
+`npm ci`, all 18 tests, `npm run native:sync` and
+`npm audit --audit-level=moderate` were rerun locally and passed; audit reports
+zero known vulnerabilities at this check. This dependency-only repair does not
+change the firmware image or establish a physical BLE connection.
+
+References: [glob cancellation](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4),
+[minimatch amplification](https://github.com/advisories/GHSA-g3hv-75wg-m249).
