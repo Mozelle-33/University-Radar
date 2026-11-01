@@ -41,7 +41,7 @@ python ..\scripts\generate_protocol.py --check
 
 保留的 `platformio.ini` 供 IDE 和烧录工具配置参考。直接 `platformio run` 会尝试安装 SDK 中许多未使用的模块；本轮该完整安装路径因 GitHub 连接失败中断，成功验证的构建入口为 `tools/build.py`。
 
-当前 `upload_protocol = jlink` 是开发工具默认值，用户尚未确认烧录器。实际是 CMSIS-DAP 时须按对应工具修改。确认硬件、电源、SWD和探针后，用探针配套工具烧录上述构建生成的完整 HEX。本轮不自动擦写设备。
+2026-10-29 用户连接的探针已确认是 ST-LINK/V2；`platformio.ini` 的 IDE 参考设置已改为 `stlink`。实际的只读探测与备份使用 OpenOCD，操作见 [ST-LINK / SWD 联调说明](../docs/STLINK_SWD.md)。配置文件修改不代表已经连通芯片、烧录成功或通过实机测试。
 
 ## 核心逻辑测试
 

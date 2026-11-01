@@ -1,6 +1,6 @@
 # University Radar
 
-**Development preview — local checks passed; real-device validation is pending.**
+**Development preview — one-board flashing and discovery checked; pairing and full device acceptance remain pending.**
 
 University Radar explores offline, consent-based connections in university settings:
 shared interests and research directions before graduation, and school, discipline,
@@ -63,6 +63,12 @@ in this preview; generating/synchronising projects does not establish that they 
 on real phones.
 
 ## Validation status
+
+Hardware follow-up on 29 October and 1 November: one nRF52832-QFAA board was
+backed up, programmed and read-back verified using ST-LINK/V2. Firmware v0.1.1
+makes its name/service visible in the setup advertisement. Windows pairing and
+GATT sync are still unresolved; see [the hardware record](docs/HARDWARE_BRINGUP.md).
+Two-board matching, real-phone tests and battery/runtime claims remain unverified.
 
 Rechecked on **27 October 2026**, for implementation developed in course Week 6:
 

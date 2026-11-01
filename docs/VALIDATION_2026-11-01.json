@@ -1,0 +1,17 @@
+{
+  "hex_records": 9810,
+  "hex_checksum": "PASS",
+  "binary_matches_hex": true,
+  "application_start": 0,
+  "highest_address": 156779,
+  "nvs_start": 499712,
+  "initial_stack": "0x20007400",
+  "reset_handler": "0x6015",
+  "firmware_bytes": 156780,
+  "native_metadata": "PASS",
+  "firmware_sha256": "2081af59d63ec44eeea28b1e31feafcc6cfbb555986deb2b13f1514c6caa71dc",
+  "verification_scope": "build artefacts and native metadata only",
+  "real_device_tests": "NOT PERFORMED BY THIS SCRIPT; see docs/HARDWARE_BRINGUP.md",
+  "android_apk_build": "NOT RUN",
+  "ios_ipa_build": "NOT RUN"
+}

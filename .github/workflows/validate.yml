@@ -26,6 +26,8 @@ jobs:
       - run: npm audit --audit-level=moderate
         working-directory: software
       - run: python scripts/generate_protocol.py --check
+      - name: Check read-only hardware helper syntax
+        run: python -m py_compile firmware/tools/probe_stlink.py
       - name: Compile and run actual firmware core
         run: |
           cc -std=c11 -Wall -Wextra -Werror -Ifirmware/include firmware/src/radar_core.c firmware/src/wire.c firmware/tests/test_core.c -o "$RUNNER_TEMP/radar-core-tests"

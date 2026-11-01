@@ -60,7 +60,9 @@ def verify():
         'initial_stack': hex(stack), 'reset_handler': hex(reset),
         'firmware_bytes': len(expected), 'native_metadata': 'PASS',
         'firmware_sha256': hashlib.sha256(image.read_bytes()).hexdigest(),
-        'real_device_tests': 'NOT RUN', 'android_apk_build': 'NOT RUN', 'ios_ipa_build': 'NOT RUN',
+        'verification_scope': 'build artefacts and native metadata only',
+        'real_device_tests': 'NOT PERFORMED BY THIS SCRIPT; see docs/HARDWARE_BRINGUP.md',
+        'android_apk_build': 'NOT RUN', 'ios_ipa_build': 'NOT RUN',
     }
 
 

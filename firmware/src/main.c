@@ -208,7 +208,7 @@ static void handle_request(void) {
   if (found < 0 || !(found & BIT(0)) || !request.cmd) { error_reply("invalid_json"); return; }
   if (!strcmp(request.cmd, "status")) {
     if (request.protocolVersion != 1) { error_reply("protocol_mismatch"); return; }
-    response_length = 0; append("{\"ok\":true,\"protocolVersion\":1,\"dictionaryVersion\":1,\"firmware\":\"0.1.0-zephyr\",\"battery\":%u,\"appliedRevision\":%lu,\"clockReady\":%s,\"flashFault\":%s,\"radioFault\":%s}", battery_percent(), (unsigned long)config.revision, epoch_now() ? "true" : "false", flash_fault ? "true" : "false", radio_fault ? "true" : "false");
+    response_length = 0; append("{\"ok\":true,\"protocolVersion\":1,\"dictionaryVersion\":1,\"firmware\":\"0.1.1-zephyr\",\"battery\":%u,\"appliedRevision\":%lu,\"clockReady\":%s,\"flashFault\":%s,\"radioFault\":%s}", battery_percent(), (unsigned long)config.revision, epoch_now() ? "true" : "false", flash_fault ? "true" : "false", radio_fault ? "true" : "false");
   } else if (!strcmp(request.cmd, "configure")) {
     radar_config_t candidate;
     if ((found & 0x1f) != 0x1f || !config_request(&request, &candidate)) { error_reply("invalid_configuration"); return; }
@@ -250,14 +250,27 @@ static void update_radio(void) {
   if (advertising) { bt_le_adv_stop(); advertising = false; }
   radar_encode_adv(&config, token, adv_payload);
   struct bt_data advertising_data[2] = { BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR), BT_DATA(BT_DATA_MANUFACTURER_DATA, adv_payload, sizeof(adv_payload)) };
-  const struct bt_data scan_response[] = { BT_DATA(BT_DATA_UUID128_ALL, service_uuid.val, 16), BT_DATA(BT_DATA_NAME_COMPLETE, "UR-Radar", 8) };
+  const struct bt_data scan_response[] = { BT_DATA(BT_DATA_UUID128_ALL, service_uuid.val, sizeof(service_uuid.val)), BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1) };
+  /* The Windows bring-up host received primary data without its scan response.
+   * During setup/paused discovery, put all identification data directly
+   * in the primary packet; Flags + UUID + name occupy exactly 31 bytes. Matching
+   * stays in manufacturer data while active, as required by passive peer scans. */
+  BUILD_ASSERT((1 + 2) + (sizeof(service_uuid.val) + 2) + (sizeof(CONFIG_BT_DEVICE_NAME) - 1 + 2) <= 31,
+               "The setup advertisement must fit a legacy 31-byte payload");
+  const struct bt_data setup_advertising[] = {
+    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR),
+    BT_DATA(BT_DATA_UUID128_ALL, service_uuid.val, sizeof(service_uuid.val)),
+    BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1),
+  };
   bool bonded = false; bt_le_filter_accept_list_clear(); bt_foreach_bond(BT_ID_DEFAULT, add_bond_to_filter, &bonded);
   bool window = k_uptime_get() < PAIRING_WINDOW_MS;
   uint32_t options = BT_LE_ADV_OPT_SCANNABLE;
   if (!connected_now && (window || bonded)) options |= BT_LE_ADV_OPT_CONNECTABLE;
   if (!connected_now && !window && bonded) options |= BT_LE_ADV_OPT_FILTER_CONN;
   struct bt_le_adv_param params = { .id = BT_ID_DEFAULT, .sid = 0, .secondary_max_skip = 0, .options = options, .interval_min = 400, .interval_max = 480, .peer = NULL };
-  int result = bt_le_adv_start(&params, advertising_data, active ? 2 : 1, scan_response, ARRAY_SIZE(scan_response));
+  int result = bt_le_adv_start(&params, active ? advertising_data : setup_advertising,
+                               active ? ARRAY_SIZE(advertising_data) : ARRAY_SIZE(setup_advertising),
+                               active ? scan_response : NULL, active ? ARRAY_SIZE(scan_response) : 0);
   if (!result) advertising = true;
   else radio_fault = true;
 }

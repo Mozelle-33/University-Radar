@@ -17,6 +17,9 @@
 !/docs/联调与验收.md
 !/docs/验证记录.md
 !/docs/DEVELOPMENT_LOG.md
+!/docs/STLINK_SWD.md
+!/docs/HARDWARE_BRINGUP.md
+!/docs/VALIDATION_2026-11-01.json
 !/docs/VALIDATION_2026-10-27.json
 !/docs/images/
 **/.env
@@ -32,5 +35,7 @@
 **/*.tsbuildinfo
 **/*.exe
 **/*.pdb
+**/__pycache__/
+**/*.pyc
 **/xcuserdata/
 /firmware/boards/*.png
