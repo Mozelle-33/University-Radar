@@ -132,3 +132,14 @@ change the firmware image or establish a physical BLE connection.
 
 References: [glob cancellation](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4),
 [minimatch amplification](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+
+### Additional physical-test limits on 1 November
+
+The dependency repair passed the complete Linux CI. An isolated build of the
+official Zephyr Device Information Service peripheral sample was prepared as a
+GATT baseline after a phone scan result could not be obtained. SWD initialization
+failed before programming that sample. A subsequent three-attempt 50 kHz
+read-only check also failed. No baseline was written, no chip recovery/erase was
+performed and no new pairing/GATT success is claimed. Stable wiring and actual
+board-supply measurements are required before further device writes; see the
+dated hardware record for the exact tested scope.
