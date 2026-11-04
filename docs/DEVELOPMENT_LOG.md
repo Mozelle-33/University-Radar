@@ -236,3 +236,17 @@ again; no firmware or web source changed in this follow-up. Board 2 encrypted
 serial receipt, actual web display, phone and dual-board matching acceptance
 remain pending. The local inventory was updated without publishing device IDs,
 backups or raw logs.
+
+### Connection state cleanup on 5 November
+
+The shared web and native UI now clears the previous device's last-sync time
+and pagination indicator when a connection closes or a different connection
+starts. After asynchronous connect and status operations, it confirms that the
+same transport connection still exists before showing a connected device;
+this prevents a late response from restoring a stale connected display.
+
+The 26 existing client, domain and protocol tests passed. The TypeScript/Vite
+production build, Capacitor Android/iOS resource sync, dependency audit and
+shared protocol check passed. This is a UI state fix: no firmware was changed
+or reflashed. Real disconnect timing, switching two boards and mobile device
+acceptance remain to be exercised on hardware.

@@ -436,6 +436,8 @@ export default function App() {
     client.current = new RadarBleClient(() => {
       setDevice(null);
       setSyncedRevision(0);
+      setLastSync(null);
+      setHasMore(false);
     });
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15000);
@@ -520,8 +522,12 @@ export default function App() {
     setDeviceError("");
     try {
       const result = await client.current!.connect();
+      if (client.current?.device?.deviceId !== result.id)
+        throw new Error("设备连接已断开，请重新连接。");
       setDevice(result);
       setSyncedRevision(0);
+      setLastSync(null);
+      setHasMore(false);
       notify("设备已连接，点击同步写入设置");
     } catch (e) {
       setDeviceError(
@@ -563,6 +569,8 @@ export default function App() {
       cursors.current[device.id] = page.nextCursor;
       setHasMore(page.hasMore);
       const status = await client.current!.status();
+      if (client.current?.device?.deviceId !== device.id)
+        throw new Error("设备连接已断开，请重新连接后同步。");
       setDevice({ ...device, status });
       setLastSync(Date.now());
       notify(
