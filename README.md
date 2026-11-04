@@ -10,6 +10,8 @@ hypotheses, not validated measures of compatibility.
 ## Preview scope
 
 - React and TypeScript web app with Radar, Encounters, Network and Profile views.
+- Chinese and English interface toggle, shared across web, Android and iOS;
+  the language choice is stored locally without changing profile or device settings.
 - Capacitor Android and iOS source projects, with BLE configuration and sync adapters.
 - nRF52832-QFAA bare-IC firmware: local two-sided matching, short LED feedback,
   64 Flash encounter records, BLE configuration, pagination and first-phone bonding.

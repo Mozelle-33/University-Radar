@@ -108,6 +108,7 @@ legend small {
   top: 10px;
 }
 .app-shell {
+  min-height: 100vh;
   min-height: 100dvh;
 }
 .sidebar {
@@ -1290,6 +1291,7 @@ h1 {
 .modal {
   width: 510px;
   max-width: 100%;
+  max-height: 90vh;
   max-height: 90dvh;
   overflow: auto;
   background: #fff;
@@ -1517,6 +1519,7 @@ h1 {
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 100px #23452313;
+  max-height: 94vh;
   max-height: 94dvh;
   overflow-y: auto;
 }
@@ -2392,6 +2395,7 @@ h1 {
   }
   .modal {
     padding: 22px 20px;
+    max-height: 88vh;
     max-height: 88dvh;
     border-radius: 12px;
   }
@@ -2499,6 +2503,21 @@ h1 {
   .detail-actions button {
     font-size: 10px;
   }
+}
+.language-switch {
+  padding: 7px 10px;
+  border: 1px solid #cbd7c3;
+  border-radius: 8px;
+  background: #fff;
+  color: #173d31;
+  font-weight: 700;
+  cursor: pointer;
+}
+.language-switch.welcome-language {
+  position: fixed;
+  z-index: 200;
+  top: calc(8px + env(safe-area-inset-top));
+  right: 8px;
 }
 @media (prefers-reduced-motion: reduce) {
   *,

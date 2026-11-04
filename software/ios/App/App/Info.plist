@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>通过蓝牙连接你的 nRF52832 随身雷达，同步匹配设置与匿名相遇记录。</string>
+    <string>通过蓝牙连接你的 nRF52832 随身雷达，同步匹配设置与匿名相遇记录。 Connect to your nRF52832 radar via Bluetooth to sync matching settings and anonymous encounters.</string>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>

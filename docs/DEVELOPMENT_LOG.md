@@ -311,3 +311,33 @@ This confirms two-way close-range matching and trigger behaviour in the temporar
 diagnostic build. It does not verify production firmware's real-clock setup,
 Flash persistence, range, power consumption, endurance or mobile apps. The
 diagnostic image and raw identifiers/backups remain in the ignored build tree.
+
+### Chinese / English interface on 5 November
+
+The shared React interface now offers a Chinese/English control on onboarding
+and in the main header. Application copy, navigation, device/error messages,
+privacy controls, tag and university labels, known encounter context and intent
+labels use a shared translation dictionary. Language is saved separately from
+the profile and device configuration; switching language does not alter matching
+IDs or stored profile values. The HTML language and title follow the selection.
+The iOS Bluetooth purpose text contains both languages; iOS system permission
+language is controlled by the operating system rather than the in-app toggle.
+
+`npm ci`, 31 tests, TypeScript/Vite build, Capacitor Android/iOS sync, audit and
+protocol/artifact checks passed. The translation coverage test checks static
+copy, BLE/storage messages and shared labels. An isolated browser session
+checked onboarding, all four desktop sections, privacy, tags, mobile layout,
+language persistence and unchanged local profile data. The updated Android debug
+APK was built, installed in the existing MuMu Android 15 instance, switched from
+Chinese to English and back, and retained the previously selected language after
+an update. The emulator does not expose BLE. iOS installation, physical phone
+BLE and screen-reader/device-specific layout remain unverified.
+The dictionary lookup only uses its own keys; tests cover custom values such as
+`toString` and `__proto__` so user-entered text is not mistaken for a translation.
+The translation lookup and dialog focus handling also avoid newer JavaScript
+built-ins unavailable on some early iOS 15 WebViews; actual iOS testing is still
+required. Dialog and page heights include `vh` fallbacks for WebViews without
+dynamic viewport units. Vite's production target includes iOS/Safari 15, so
+CSS minification retains the tested fallbacks rather than dropping them for
+the newer default browser baseline. See [Safari 15.4 release notes](https://developer.apple.com/documentation/safari-release-notes/safari-15_4-release-notes)
+and [Vite build targets](https://vite.dev/config/build-options.html#build-target).

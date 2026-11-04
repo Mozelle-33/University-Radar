@@ -1,5 +1,6 @@
 import { initialState, parseState, type AppState } from "./domain";
 import { Capacitor } from "@capacitor/core";
+import { t } from "./i18n";
 export const STORAGE_KEY = "university-radar:v1";
 export function loadState(): { state: AppState; warning: string | null } {
   try {
@@ -45,9 +46,9 @@ export async function downloadState(state: AppState) {
       encoding: Encoding.UTF8,
     });
     await Share.share({
-      title: "University Radar 本机数据",
+      title: t("University Radar 本机数据"),
       files: [file.uri],
-      dialogTitle: "保存或分享数据备份",
+      dialogTitle: t("保存或分享数据备份"),
     });
     return;
   }
