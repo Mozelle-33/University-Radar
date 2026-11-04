@@ -256,3 +256,35 @@ after each encounter-page response, before updating confirmation, storage or
 pagination state. This closes the case where the disconnect callback runs just
 before a pending response resumes. The existing tests and native sync passed
 again after this adjustment.
+
+### MuMu Android debug build on 5 November
+
+The locally installed MuMu instance ran Android 15 / API 35 and connected over
+ADB. A local JDK 21 and Android SDK 36 toolchain was prepared under the ignored
+build directory; Android SDK licenses were accepted locally, including eight SDK
+license categories, some unrelated to this build. Gradle 8.14.3 built the debug
+APK successfully. Android's package manager accepted it and the app launched.
+
+The four demo navigation screens and the device dialog were inspected in MuMu,
+with a portrait layout check. Android's UI hierarchy dump exited with code 139
+on one attempt while the app remained running; screenshot-based inspection was
+used for the subsequent navigation checks. Bluetooth permission was granted in
+the emulator for this test. MuMu exposed `android.hardware.bluetooth` but not
+`android.hardware.bluetooth_le`, and plugin initialization returned `BLE is not
+supported`. The client now translates that specific native error into an
+actionable Chinese message while preserving other errors. The rebuilt APK was
+reinstalled and that message was verified on the emulator.
+
+At startup, the Capacitor SystemBars plugin logged two `Error injecting safe area
+CSS` messages because `document.documentElement` was null when it tried to set
+styles. The screens appeared usable in the inspected emulator layouts, but those
+logs are not a passing safe-area test; startup and display-cutout/keyboard insets
+need further investigation on real Android devices. Chromium also emitted MuMu
+EGL shared-image diagnostics during rendering. These observations are recorded
+separately from fatal app crashes rather than reported as a clean console.
+
+All 28 existing/new web and BLE adapter tests, the Vite build, Android/iOS
+Capacitor sync and Android `:app:assembleDebug` passed. The APK is debug-signed;
+neither an Android phone, a release build nor a BLE connection was tested. One
+board remains bound to the PC; changing its binding is separate from installing
+the APK. Build and emulator screenshots remain local.

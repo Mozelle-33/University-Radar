@@ -66,10 +66,12 @@ Do not combine it at address 0 with S132 or another bootloader. Confirm the cust
 board's power path, exposed-pad ground, RF layout and SWD wiring before powering
 or programming it. Vibration is not implemented; this revision uses LEDs.
 
-Android APK compilation requires a JDK and Android SDK. iOS IPA compilation and
-signing require macOS and Xcode. Neither installable package has been validated
-in this preview; generating/synchronising projects does not establish that they run
-on real phones.
+Android APK compilation requires JDK 21 and Android SDK Platform 36. On Windows,
+run `npm run native:sync` in `software`, then run `gradlew.bat :app:assembleDebug`
+in `software/android` with `JAVA_HOME` and `ANDROID_HOME` configured. The output
+is `software/android/app/build/outputs/apk/debug/app-debug.apk`. This is a debug
+build, not a signed release. iOS IPA compilation and signing require macOS and
+Xcode. Neither platform has been validated on a physical phone in this preview.
 
 ## Validation status
 
@@ -91,6 +93,12 @@ subsequently upgraded to v0.1.2 with its NVS preserved; runtime serial/reset,
 numbered setup scanning and encrypted serial-status receipt over its existing PC
 bond passed. Neither check establishes two-board matching or phone acceptance.
 See the dated hardware record for scope and local-only data handling.
+
+On **5 November 2026**, a debug APK was built, installed and launched on MuMu
+Android 15 via ADB. The four demo navigation screens and the device dialog were
+checked, including its portrait layout. MuMu reported no BLE feature and the
+plugin returned `BLE is not supported`; the app now displays a Chinese explanation.
+This emulator check does not establish Android-to-radar BLE connectivity.
 
 Rechecked on **27 October 2026**, for implementation developed in course Week 6:
 

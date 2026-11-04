@@ -76,7 +76,15 @@ export class RadarBleClient {
   async connect(): Promise<{ name: string; id: string; status: DeviceStatus }> {
     if (!bluetoothAvailability().available)
       throw new Error(bluetoothAvailability().note);
-    await BleClient.initialize({ androidNeverForLocation: true });
+    try {
+      await BleClient.initialize({ androidNeverForLocation: true });
+    } catch (error) {
+      if (error instanceof Error && /BLE is not supported\.?/i.test(error.message))
+        throw new Error(
+          "当前设备不支持低功耗蓝牙（BLE），无法连接雷达。请使用支持 BLE 的手机。",
+        );
+      throw error;
+    }
     const device = await BleClient.requestDevice({ services: [SERVICE] });
     try {
       await BleClient.connect(device.deviceId, this.closed);

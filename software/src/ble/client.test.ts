@@ -88,6 +88,16 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("real BLE adapter contract", () => {
+  it("explains missing native BLE without opening a device chooser", async () => {
+    fake.initialize.mockRejectedValueOnce(new Error("BLE is not supported."));
+    await expect(new RadarBleClient().connect()).rejects.toThrow("当前设备不支持低功耗蓝牙");
+    expect(fake.requestDevice).not.toHaveBeenCalled();
+  });
+  it("preserves unrelated native initialization errors", async () => {
+    fake.initialize.mockRejectedValueOnce(new Error("Permission denied"));
+    await expect(new RadarBleClient().connect()).rejects.toThrow("Permission denied");
+    expect(fake.requestDevice).not.toHaveBeenCalled();
+  });
   it("uses the live serial to distinguish devices despite a cached OS name", async () => {
     reply = () => ({
       ok: true, protocolVersion: 1, dictionaryVersion: 1,
