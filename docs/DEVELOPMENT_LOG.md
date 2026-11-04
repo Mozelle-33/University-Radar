@@ -215,3 +215,24 @@ Computer Use stopped UI verification because it could not establish the current
 browser URL; no further UI automation was performed. Encrypted serial-status
 receipt, actual connected UI display, phone runs and two-board matching remain
 unverified. Raw identifiers, backups and the local inventory stay out of Git.
+
+### Board 1 upgraded with retained storage on 5 November
+
+The user reconnected board 1. Its AAE0/E0 geometry and FICR identity matched
+the original backup. A fresh full Flash/UICR/FICR backup passed size/hash checks
+before the existing v0.1.2 image was programmed. Application read-back and
+OpenOCD verification passed; bytes at/above 0x27000, including NVS, plus UICR
+and FICR remained unchanged before first boot.
+
+Runtime serial/name values matched the independent derivation before and after
+reset; storage/radio fault flags were false. Windows scanning found the numbered
+setup advertisement. Using the existing PC bond with `pair=False`, encrypted
+status returned the correct v0.1.2 serial and revision 1; the first encounter
+page was empty. No new binding or configuration write was requested. The clock
+remains unsynchronised after reset, as designed, and discovery was not enabled.
+
+Both boards now run v0.1.2. The artifact and shared dictionary checks passed
+again; no firmware or web source changed in this follow-up. Board 2 encrypted
+serial receipt, actual web display, phone and dual-board matching acceptance
+remain pending. The local inventory was updated without publishing device IDs,
+backups or raw logs.

@@ -86,8 +86,11 @@ On **5 November 2026**, board 2 was backed up and programmed with v0.1.2.
 Full application read-back, the runtime maintenance serial before/after reset,
 and scanning its numbered setup advertisement passed. The web/native client
 passed 26 tests and resource sync; connected serial display and encrypted serial
-receipt on board 2 remain unverified after UI automation stopped. Board 1 remains
-on v0.1.1. See the dated hardware record for scope and local-only data handling.
+receipt on board 2 remain unverified after UI automation stopped. Board 1 was
+subsequently upgraded to v0.1.2 with its NVS preserved; runtime serial/reset,
+numbered setup scanning and encrypted serial-status receipt over its existing PC
+bond passed. Neither check establishes two-board matching or phone acceptance.
+See the dated hardware record for scope and local-only data handling.
 
 Rechecked on **27 October 2026**, for implementation developed in course Week 6:
 
