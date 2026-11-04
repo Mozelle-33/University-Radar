@@ -14,6 +14,9 @@ hypotheses, not validated measures of compatibility.
 - nRF52832-QFAA bare-IC firmware: local two-sided matching, short LED feedback,
   64 Flash encounter records, BLE configuration, pagination and first-phone bonding.
 - Shared protocol dictionary in `shared/radar-v1.json`.
+- Stable maintenance serials in firmware v0.1.2: a numbered setup name for
+  selecting a device and a full serial in the shared web/native device panel.
+  Old firmware stays usable and is labelled as not providing a serial.
 
 The app has a clearly labelled fictional demo. Demo invitations and simulated
 acceptance do not send messages to real users or establish real mutual consent.
@@ -78,6 +81,13 @@ compatibility step after a standard DIS baseline; pristine new-host pairing is
 not yet proven. See [the hardware record](docs/HARDWARE_BRINGUP.md).
 Discovery is paused and this PC occupies the single bond slot. Two-board matching,
 real-phone tests and battery/runtime claims remain unverified.
+
+On **5 November 2026**, board 2 was backed up and programmed with v0.1.2.
+Full application read-back, the runtime maintenance serial before/after reset,
+and scanning its numbered setup advertisement passed. The web/native client
+passed 26 tests and resource sync; connected serial display and encrypted serial
+receipt on board 2 remain unverified after UI automation stopped. Board 1 remains
+on v0.1.1. See the dated hardware record for scope and local-only data handling.
 
 Rechecked on **27 October 2026**, for implementation developed in course Week 6:
 

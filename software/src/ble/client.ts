@@ -38,6 +38,7 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 export interface DeviceStatus {
   firmware: string;
+  serialNumber: string | null;
   battery: number;
   dictionaryVersion: number;
   warning: string | null;
@@ -109,7 +110,10 @@ export class RadarBleClient {
       const status = await this.status();
       return {
         id: device.deviceId,
-        name: device.name ?? "University Radar",
+        // OS names can be cached from an older firmware. Use the live status.
+        name: status.serialNumber
+          ? `UR${status.serialNumber.slice(-6)}`
+          : (device.name ?? "University Radar"),
         status,
       };
     } catch (error) {
@@ -179,11 +183,16 @@ export class RadarBleClient {
       data.firmware.length > 40 ||
       !Number.isInteger(data.battery) ||
       Number(data.battery) < 0 ||
-      Number(data.battery) > 100
+      Number(data.battery) > 100 ||
+      (data.serialNumber !== undefined &&
+        (typeof data.serialNumber !== "string" ||
+          !/^UR-[0-9A-F]{16}$/.test(data.serialNumber)))
     )
       throw new Error("设备状态格式无效。");
     return {
       firmware: data.firmware,
+      serialNumber:
+        typeof data.serialNumber === "string" ? data.serialNumber : null,
       battery: Number(data.battery),
       dictionaryVersion: DICTIONARY_VERSION,
       warning:

@@ -842,6 +842,11 @@ export default function App() {
                       )}
                     </span>
                   </div>
+                  {!isDemo && device && (
+                    <p className="device-serial">
+                      设备编号：{device.status.serialNumber ?? "旧版固件未提供"}
+                    </p>
+                  )}
                   <button
                     className="outline full"
                     disabled={busy}
@@ -1353,6 +1358,16 @@ export default function App() {
               </p>
             </div>
           </div>
+          {!isDemo && device && (
+            <div className="setting-row">
+              <div>
+                <strong>设备编号</strong>
+                <p className="device-serial">
+                  {device.status.serialNumber ?? "旧版固件未提供，请升级固件"}
+                </p>
+              </div>
+            </div>
+          )}
           {deviceError && (
             <div role="alert" className="error-message">
               {deviceError}

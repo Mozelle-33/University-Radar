@@ -6,6 +6,8 @@
 #include <device.h>
 #include <drivers/gpio.h>
 #include <drivers/adc.h>
+#include <drivers/hwinfo.h>
+#include <tinycrypt/sha256.h>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/conn.h>
 #include <bluetooth/gatt.h>
@@ -38,6 +40,8 @@ static radar_config_t config = { .revision = 1, .school = 1, .min_shared = 1, .r
 static radar_store_t store, next_store;
 static wire_rx_t rx;
 static uint8_t token[8], adv_payload[RADAR_ADV_LENGTH];
+/* Maintenance identity is independent of Flash settings and rotating peer tokens. */
+static char device_serial[20], setup_name[9];
 static uint32_t epoch_base;
 static int64_t epoch_uptime, token_uptime, green_until;
 static bool advertising, scanning, loaded_config, flash_fault, radio_fault;
@@ -52,6 +56,21 @@ K_MSGQ_DEFINE(peer_queue, sizeof(sighting_t), 8, 4);
 static char response[WIRE_MAX + 1];
 static size_t response_length;
 static radar_record_t page[8];
+
+static bool init_device_identity(void) {
+  static const uint8_t domain[] = "UniversityRadar.serial.v1";
+  uint8_t hardware_id[8], digest[TC_SHA256_DIGEST_SIZE];
+  struct tc_sha256_state_struct hash;
+  if (hwinfo_get_device_id(hardware_id, sizeof(hardware_id)) != sizeof(hardware_id)
+      || !tc_sha256_init(&hash)
+      || !tc_sha256_update(&hash, domain, sizeof(domain) - 1)
+      || !tc_sha256_update(&hash, hardware_id, sizeof(hardware_id))
+      || !tc_sha256_final(digest, &hash)) return false;
+  memcpy(device_serial, "UR-", 3);
+  for (size_t i = 0; i < 8; i++) snprintf(device_serial + 3 + 2 * i, 3, "%02X", digest[i]);
+  snprintf(setup_name, sizeof(setup_name), "UR%s", device_serial + 13);
+  return true;
+}
 
 static uint32_t epoch_now(void) { return epoch_base ? epoch_base + (uint32_t)((k_uptime_get() - epoch_uptime) / 1000) : 0; }
 static void led(unsigned int pin, bool on) { if (gpio) gpio_pin_set(gpio, pin, !on); }
@@ -208,7 +227,7 @@ static void handle_request(void) {
   if (found < 0 || !(found & BIT(0)) || !request.cmd) { error_reply("invalid_json"); return; }
   if (!strcmp(request.cmd, "status")) {
     if (request.protocolVersion != 1) { error_reply("protocol_mismatch"); return; }
-    response_length = 0; append("{\"ok\":true,\"protocolVersion\":1,\"dictionaryVersion\":1,\"firmware\":\"0.1.1-zephyr\",\"battery\":%u,\"appliedRevision\":%lu,\"clockReady\":%s,\"flashFault\":%s,\"radioFault\":%s}", battery_percent(), (unsigned long)config.revision, epoch_now() ? "true" : "false", flash_fault ? "true" : "false", radio_fault ? "true" : "false");
+    response_length = 0; append("{\"ok\":true,\"protocolVersion\":1,\"dictionaryVersion\":1,\"firmware\":\"0.1.2-zephyr\",\"serialNumber\":\"%s\",\"battery\":%u,\"appliedRevision\":%lu,\"clockReady\":%s,\"flashFault\":%s,\"radioFault\":%s}", device_serial, battery_percent(), (unsigned long)config.revision, epoch_now() ? "true" : "false", flash_fault ? "true" : "false", radio_fault ? "true" : "false");
   } else if (!strcmp(request.cmd, "configure")) {
     radar_config_t candidate;
     if ((found & 0x1f) != 0x1f || !config_request(&request, &candidate)) { error_reply("invalid_configuration"); return; }
@@ -251,16 +270,17 @@ static void update_radio(void) {
   radar_encode_adv(&config, token, adv_payload);
   struct bt_data advertising_data[2] = { BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR), BT_DATA(BT_DATA_MANUFACTURER_DATA, adv_payload, sizeof(adv_payload)) };
   const struct bt_data scan_response[] = { BT_DATA(BT_DATA_UUID128_ALL, service_uuid.val, sizeof(service_uuid.val)), BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1) };
-  /* The Windows bring-up host received primary data without its scan response.
-   * During setup/paused discovery, put all identification data directly
-   * in the primary packet; Flags + UUID + name occupy exactly 31 bytes. Matching
-   * stays in manufacturer data while active, as required by passive peer scans. */
-  BUILD_ASSERT((1 + 2) + (sizeof(service_uuid.val) + 2) + (sizeof(CONFIG_BT_DEVICE_NAME) - 1 + 2) <= 31,
+  /* Setup name is UR + six serial digits: Flags + UUID + name fit 31 bytes.
+   * Active matching keeps the generic name and rotating peer token; never add
+   * the stable serial suffix to active advertisements or scan responses. */
+  BUILD_ASSERT((1 + 2) + (sizeof(service_uuid.val) + 2) + (sizeof(setup_name) - 1 + 2) <= 31,
                "The setup advertisement must fit a legacy 31-byte payload");
+  BUILD_ASSERT((sizeof(service_uuid.val) + 2) + (sizeof(CONFIG_BT_DEVICE_NAME) - 1 + 2) <= 31,
+               "The active scan response must fit a legacy 31-byte payload");
   const struct bt_data setup_advertising[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR),
     BT_DATA(BT_DATA_UUID128_ALL, service_uuid.val, sizeof(service_uuid.val)),
-    BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME, sizeof(CONFIG_BT_DEVICE_NAME) - 1),
+    BT_DATA(BT_DATA_NAME_COMPLETE, setup_name, sizeof(setup_name) - 1),
   };
   bool bonded = false; bt_le_filter_accept_list_clear(); bt_foreach_bond(BT_ID_DEFAULT, add_bond_to_filter, &bonded);
   bool window = k_uptime_get() < PAIRING_WINDOW_MS;
@@ -305,6 +325,7 @@ void main(void) {
     if (adc_channel_setup(adc, &channel)) adc = NULL;
   }
   radar_store_init(&store); wire_reset(&rx);
+  if (!init_device_identity()) { led(LED_RED, true); return; }
   bt_conn_cb_register(&connection_callbacks);
   if (bt_enable(NULL)) { led(LED_RED, true); return; }
   if (settings_subsys_init() || settings_load()) flash_fault = true;

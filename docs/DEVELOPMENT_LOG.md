@@ -169,3 +169,49 @@ The Windows launcher now uses port 5174 to preserve the origin used for the
 successful browser permission grant. No production firmware algorithm,
 encryption setting or permanent identity-address policy changed in this resumed
 test; temporary diagnostic parameters were removed by normal reset.
+
+### Board 2 programmed on 5 November
+
+After the user physically reconnected the ST-LINK in a different USB port,
+the target was read as nRF52832-QFAA AAE1/E1, 512 KiB Flash and 64 KiB RAM.
+Its FICR identity differs from board 1. Complete original Flash, UICR and FICR
+backups passed length and SHA-256 checks and remain local and ignored.
+
+The existing v0.1.1 image was programmed without source changes. OpenOCD
+verification passed, and a full pre-boot read-back confirmed all 156,780
+application bytes, erased page padding, unchanged data at/above 0x27000,
+unchanged UICR and unchanged FICR. The target was reset to run. Requested SWD
+speed was 1000 kHz; the probe selected 950 kHz. Earlier intermittent failures
+remain a limitation, not evidence of long-term electrical stability.
+
+The artifact verifier and shared protocol generator check passed again.
+No new bonding, BLE/GATT acceptance, second-board configuration or two-board
+encounter test was performed. No application or firmware source changed, so
+the existing unit-test/build results were not relabelled as new executions.
+See HARDWARE_BRINGUP.md for the dated scope; original course attribution is
+unchanged.
+
+### Stable maintenance serials added on 5 November
+
+Firmware v0.1.2 derives a stable `UR-` plus 16-hex-digit serial from SHA-256
+of a domain prefix and the chip's eight-byte hardware ID. Encrypted status
+adds `serialNumber`; setup advertisements use an eight-character `UR` plus
+six-digit suffix so flags, the service UUID and name still fit 31 bytes.
+Active matching retains its rotating token and generic scan-response name.
+The shared web/native BLE client validates the optional field, handles old
+firmware explicitly and uses the live serial instead of an OS-cached name.
+The device card and device dialog expose the full number.
+
+`npm ci`, 26 client/domain/protocol tests, TypeScript/Vite build and native
+resource sync passed. The actual C11 core assertions, full ARM build, protocol
+dictionary check and artifact verification passed. Image size is 158,128 bytes,
+static RAM is 36,542 bytes. After another full backup, board 2 was upgraded and
+read-back verified; UICR and data beyond the programmed pages were unchanged
+before boot. Runtime serial/name bytes matched an independent Python SHA-256
+derivation before and after reset, without storage/radio fault flags; a Windows
+scan found the expected numbered setup advertisement. Board 1 remains on v0.1.1.
+
+Computer Use stopped UI verification because it could not establish the current
+browser URL; no further UI automation was performed. Encrypted serial-status
+receipt, actual connected UI display, phone runs and two-board matching remain
+unverified. Raw identifiers, backups and the local inventory stay out of Git.

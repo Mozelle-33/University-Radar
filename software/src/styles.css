@@ -1328,6 +1328,11 @@ h1 {
   background: #f4f7ee;
   color: #6c8756;
 }
+.device-serial {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
 .device-summary h3 {
   font-size: 15px;
   font-weight: 500;

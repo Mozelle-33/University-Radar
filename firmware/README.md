@@ -61,6 +61,8 @@ cc -std=c11 -Wall -Wextra -Werror -Iinclude src/radar_core.c src/wire.c tests/te
 
 ## 运行与持久化
 
+固件0.1.2增加稳定的维护编号：加密`status`响应提供 `UR-` 加16位十六进制的`serialNumber`。该值由硬件ID经带固定前缀的SHA-256派生，不写入NVS；重刷和清除配置后仍保持一致。配置／暂停状态的蓝牙名称为 `UR` 加编号末6位，长度8字节，与Flags和128位服务UUID合计31字节。匹配开启时仍发送轮换token，scan response使用通用名称 `UR-Radar`；具体格式与可关联性说明见 [BLE协议](../docs/BLE协议_v1.md)。
+
 1. 上电读取 NVS 配置与64条循环记录；不信任断电前的 Unix 时间，等待手机同步校时。
 2. 前60秒提供首次绑定窗口，蓝灯短闪。GATT要求加密，采用Just Works绑定。窗口过后只接受已绑定身份连接；没有绑定时仍可扫描响应，但不接受新连接。
 3. 手机按 v1 协议写配置，Flash成功后才确认版本；不写入姓名或联系方式。

@@ -88,6 +88,40 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("real BLE adapter contract", () => {
+  it("uses the live serial to distinguish devices despite a cached OS name", async () => {
+    reply = () => ({
+      ok: true, protocolVersion: 1, dictionaryVersion: 1,
+      firmware: "0.1.2-zephyr", battery: 72,
+      serialNumber: "UR-0123456789ABCDEF",
+    });
+    const first = new RadarBleClient();
+    expect(await first.connect()).toMatchObject({
+      name: "URABCDEF", status: { serialNumber: "UR-0123456789ABCDEF" },
+    });
+    await first.disconnect();
+    // A different transport ID after a new browser grant does not change the serial.
+    fake.requestDevice.mockResolvedValue({ deviceId: "new-grant", name: "UR-Radar" });
+    const second = new RadarBleClient();
+    expect((await second.connect()).status.serialNumber).toBe("UR-0123456789ABCDEF");
+    await second.disconnect();
+  });
+  it("keeps legacy firmware usable without inventing a hardware serial", async () => {
+    const client = new RadarBleClient();
+    expect(await client.connect()).toMatchObject({
+      name: "UR-Radar", status: { serialNumber: null },
+    });
+    await client.disconnect();
+  });
+  it.each([null, 12, "", "UR-012345", "UR-0123456789abcdef", "UR-0123456789ABCDEFX"])(
+    "rejects a malformed advertised status serial: %s", async (serialNumber) => {
+      reply = () => ({
+        ok: true, protocolVersion: 1, dictionaryVersion: 1,
+        firmware: "test", battery: 72, serialNumber,
+      });
+      await expect(new RadarBleClient().connect()).rejects.toThrow("状态格式无效");
+      expect(fake.disconnect).toHaveBeenCalled();
+    },
+  );
   it("surfaces firmware storage, radio and clock conditions", async () => {
     const client = new RadarBleClient();
     reply = () => ({

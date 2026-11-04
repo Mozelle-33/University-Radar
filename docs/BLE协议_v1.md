@@ -10,7 +10,7 @@
 | RX | `c0130002-9f39-4ae4-8fae-7d5a6b810001` | 手机 Write with response，需要加密 |
 | TX | `c0130003-9f39-4ae4-8fae-7d5a6b810001` | 设备 Notify，CCC 需要加密 |
 
-未启用发现（包括重启后尚未校时）时，主广播直接包含 Flags、128位服务UUID与 `UR-Radar` 名称，共31字节，便于首次连接识别。已授权且意向有效的匹配模式保留主广播中的 manufacturer data，UUID与名称放在scan response中。此调整来自单板Windows实测；能识别名称不等于已建立连接。
+从固件0.1.2起，未启用发现（包括重启后尚未校时）时，主广播直接包含 Flags、128位服务UUID与8字符设备短名称（`UR`加设备编号末6位），共31字节，便于在多个设备中选择。已授权且意向有效的匹配模式保留主广播中的 manufacturer data，UUID与通用名称 `UR-Radar` 放在scan response中，不发送固定短编号。旧版0.1.1的配置名称仍为 `UR-Radar`。能识别名称不等于已建立连接。
 
 扫描连接仅在用户点击时开始。GATT 初始化、通知订阅、状态检查之后才允许写配置；连接失败不得自动切换演示数据。
 
@@ -34,8 +34,12 @@ JSON 最大 3072 bytes。非末片必须恰好 14 bytes 负载，末片不能为
 ```
 
 ```json
-{"ok":true,"protocolVersion":1,"dictionaryVersion":1,"firmware":"0.1.0-zephyr","battery":72,"appliedRevision":3,"clockReady":true,"flashFault":false,"radioFault":false}
+{"ok":true,"protocolVersion":1,"dictionaryVersion":1,"firmware":"0.1.2-zephyr","serialNumber":"UR-0123456789ABCDEF","battery":72,"appliedRevision":3,"clockReady":true,"flashFault":false,"radioFault":false}
 ```
+
+`serialNumber` 是维护用设备编号，格式为 `UR-` 加16位大写十六进制；示例为虚构值。取 `SHA-256(UTF8("UniversityRadar.serial.v1") || hwinfo_get_device_id的8字节输出)` 的前8字节编码；本nRF52832驱动依次输出DEVICEID[1]和DEVICEID[0]的大端字节。同一芯片的重启、重刷及清除配置不改变编号。短名称只用于选择，可能碰撞，完整编号才用于核对；编号不作为配对密码或身份认证凭证。配置状态的固定短名称可用于关联设备，不能把它称为匿名广播。
+
+该字段是v1协议的兼容性扩展。旧固件缺少此字段时客户端显示“旧版固件未提供”，不把MAC、浏览器授权ID或iOS标识充当硬件编号；字段存在但格式错误时拒绝状态响应。网页和原生App读取同一字段，OS缓存名称不覆盖固件返回的编号。设备相遇记录中的轮换peerId不改为维护编号。
 
 ### configure
 
