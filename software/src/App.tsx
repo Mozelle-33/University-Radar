@@ -552,11 +552,17 @@ export default function App() {
         return;
       }
       const revision = state.configRevision;
+      const ensureConnected = () => {
+        if (client.current?.device?.deviceId !== device.id)
+          throw new Error("设备连接已断开，请重新连接后同步。");
+      };
       await client.current!.configure(profile, revision);
+      ensureConnected();
       setSyncedRevision(revision);
       const page = await client.current!.encounters(
         cursors.current[device.id] ?? "",
       );
+      ensureConnected();
       const current = latestState.current;
       const next = {
         ...current,
@@ -569,8 +575,7 @@ export default function App() {
       cursors.current[device.id] = page.nextCursor;
       setHasMore(page.hasMore);
       const status = await client.current!.status();
-      if (client.current?.device?.deviceId !== device.id)
-        throw new Error("设备连接已断开，请重新连接后同步。");
+      ensureConnected();
       setDevice({ ...device, status });
       setLastSync(Date.now());
       notify(

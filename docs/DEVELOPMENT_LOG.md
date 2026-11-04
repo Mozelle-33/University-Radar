@@ -250,3 +250,9 @@ production build, Capacitor Android/iOS resource sync, dependency audit and
 shared protocol check passed. This is a UI state fix: no firmware was changed
 or reflashed. Real disconnect timing, switching two boards and mobile device
 acceptance remain to be exercised on hardware.
+
+The same connection check also runs after configuration acknowledgement and
+after each encounter-page response, before updating confirmation, storage or
+pagination state. This closes the case where the disconnect callback runs just
+before a pending response resumes. The existing tests and native sync passed
+again after this adjustment.
