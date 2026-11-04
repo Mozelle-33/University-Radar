@@ -81,7 +81,7 @@ encrypted GATT commands, configuration/time sync, empty pagination and the Edge
 web client's real-device sync passed. Initial commissioning used a documented
 compatibility step after a standard DIS baseline; pristine new-host pairing is
 not yet proven. See [the hardware record](docs/HARDWARE_BRINGUP.md).
-Discovery is paused and this PC occupies the single bond slot. Two-board matching,
+Discovery is paused and this PC occupies the single bond slot on board 1. Production two-board matching,
 real-phone tests and battery/runtime claims remain unverified.
 
 On **5 November 2026**, board 2 was backed up and programmed with v0.1.2.
@@ -93,6 +93,12 @@ subsequently upgraded to v0.1.2 with its NVS preserved; runtime serial/reset,
 numbered setup scanning and encrypted serial-status receipt over its existing PC
 bond passed. Neither check establishes two-board matching or phone acceptance.
 See the dated hardware record for scope and local-only data handling.
+
+A later temporary two-board diagnostic confirmed both devices received and
+matched test broadcasts and triggered their green LEDs at close range. Both
+boards were restored and verified on v0.1.2 afterward. The diagnostic used a
+synthetic clock and RAM-only records; the production two-board workflow and
+physical phone BLE remain to be tested.
 
 On **5 November 2026**, a debug APK was built, installed and launched on MuMu
 Android 15 via ADB. The four demo navigation screens and the device dialog were

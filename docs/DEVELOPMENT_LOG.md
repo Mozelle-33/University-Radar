@@ -288,3 +288,26 @@ Capacitor sync and Android `:app:assembleDebug` passed. The APK is debug-signed;
 neither an Android phone, a release build nor a BLE connection was tested. One
 board remains bound to the PC; changing its binding is separate from installing
 the APK. Build and emulator screenshots remain local.
+
+### Two-board automatic trigger diagnostic on 5 November
+
+With one ST-LINK and independent power, the two identified nRF52832 boards were
+backed up and loaded in turn with an isolated diagnostic build based on v0.1.2.
+It starts matching automatically with a synthetic clock and test-only token
+prefix, accepts only marked peers, keeps test encounters in RAM and holds the
+green output on for two seconds. It does not persist the synthetic configuration
+or test encounter records into the production store.
+
+Board 2 reported 11 received, 11 matched and one saved RAM test event; board 1
+reported 41 received, 41 matched and four saved RAM test events. Different runs
+and restarts account for the differing counts; these are not reception rates.
+The user observed both green LEDs illuminate twice on a repeated trigger. A
+non-halting 50 ms GPIO-output sample on board 2 detected 42 low samples during
+a restart trigger. Both boards were restored to v0.1.2, fully read-back verified,
+with UICR/FICR and Flash beyond the programmed pages unchanged before boot.
+Board 1's pre-existing PC bond and encrypted status worked after restoration.
+
+This confirms two-way close-range matching and trigger behaviour in the temporary
+diagnostic build. It does not verify production firmware's real-clock setup,
+Flash persistence, range, power consumption, endurance or mobile apps. The
+diagnostic image and raw identifiers/backups remain in the ignored build tree.
