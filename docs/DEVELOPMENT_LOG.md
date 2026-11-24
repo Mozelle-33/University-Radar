@@ -341,3 +341,75 @@ dynamic viewport units. Vite's production target includes iOS/Safari 15, so
 CSS minification retains the tested fallbacks rather than dropping them for
 the newer default browser baseline. See [Safari 15.4 release notes](https://developer.apple.com/documentation/safari-release-notes/safari-15_4-release-notes)
 and [Vite build targets](https://vite.dev/config/build-options.html#build-target).
+
+## Card hardware revision, 20 November 2026
+
+Recorded and rechecked on **24 November 2026**. This entry covers the 85.60 ×
+53.98 mm University Radar card edited in EasyEDA Pro 4.1.105. The delivered
+fabrication variants use two layers, 1.2 mm finished thickness and 1 oz outer
+copper. The fabrication specification omits impedance control.
+
+### Power and charging
+
+- Corrected the CJE3139K power-path MOSFET Q1. Its source now connects to
+  `SYS_RAW`, its drain to `VBAT`, and R22 pulls its USB-controlled gate node
+  low when USB is absent. The body diode now points from the battery toward
+  the system rail, removing the previous direct USB-to-battery path through Q1.
+- Connected the battery directly to the UMW TP4054 charge path. SW2 now drives
+  the AO3401A system-load MOSFET Q3, so the slide switch carries gate-bias
+  current. Changed R4 from 2 kΩ to 10 kΩ, which sets a nominal 100 mA charge
+  current for this TP4054 variant. Battery charge current, switch-off charging
+  and USB insertion/removal still need bench validation.
+- Estimated battery-side idle current at 3.7 V with USB disconnected and
+  indicators off. SW2 off gives about 8–12 µA from the charger and divider,
+  before other leakage. Powered idle with radio activity stopped gives about
+  0.09–0.11 mA if CH340N suspends or about 4.1 mA if it stays active. The firmware's
+  15% passive scan duty cycle adds an estimated 0.8–1.0 mA of receive load,
+  plus advertising and CPU activity. A 500 mAh battery at 80% usable capacity
+  allows about 2.38 mA average for seven days. These are design estimates.
+
+### BLE antenna and matching
+
+Compared the original serpentine antenna with an inverted-F antenna in openEMS
+0.37.0 over 2.402–2.480 GHz, using a 50 Ω reference at the antenna feed. The
+1.2 mm finished-board model used a nominal 1.11 mm FR-4 core and two combined
+core-thickness and permittivity cases. The original antenna with C6 at 1.2 pF
+had worst-band S11 near 0 dB in the nominal model. The inverted-F candidate
+with only a series 0.9 nH inductor yielded about −11.7 dB nominal worst-band
+S11 and about −7.2 dB at the least favorable sampled corner.
+
+Implemented the inverted-F as board copper. Gerber inspection confirmed a
+20.5 mm arm, 1.0 mm arm width, a 4.0 mm offset between feed and shorting
+branch, and a copper-free bottom layer under the radiating arm. The schematic
+and PCB include three antenna-side matching positions. Fit L5 at 0.9 nH and
+leave C6 and C20 unpopulated. A later layout pass moved C6 and C20 about 0.43 mm
+away from L5, adjusted the local ground returns and teardrops, and separated
+the annotations. The main feed and antenna copper geometry matched the
+pre-spacing version. The sweep preceded that spacing adjustment and used
+simplified planes and ideal matching elements in a bare-board model.
+
+### Fabrication variants and validation
+
+The full-board color version uses a navy front, a deep teal back and the
+Group 01 University Radar artwork. It requires white soldermask, ENIG and
+JLCEDA colorful silkscreen. The monochrome version uses standard white
+silkscreen on matte black soldermask. The two versions have independent
+EasyEDA project exports, Gerber ZIPs and front/back previews.
+[JLCEDA colorful silkscreen guide](https://prodocs.lceda.cn/cn/pcb/other-draw-colorful-silkscreen/index.html)
+
+| Check | Recorded result |
+| --- | --- |
+| EasyEDA rules and connectivity | Both variants have 0 ratlines and no new DRC markers. The 16 reported markers comprise four NFC footprint/trace clearance markers and twelve USB-C board-cutout clearance markers. |
+| Electrical and mechanical source comparison | 1,541 records match across the color, monochrome and restored active-board snapshots, excluding silkscreen objects. |
+| Gerber and artifact recheck on 24 November | All six final artifacts matched the local manifest's byte counts and SHA-256 values. Both Gerber ZIPs passed CRC checks. The color package contains FCTS and FCBS. The monochrome package contains standard GTO and GBO. |
+| Artwork placement | Both color faces were checked in the EasyEDA preview. Gerber-derived inspection of the monochrome faces confirmed that the new artwork clears exposed pads and reads correctly from each side. |
+
+The six final artifacts and their checksums are in the local
+`outputs/eda-card-silkscreen-variants/` directory. The RF sweep, earlier
+manufacturing comparisons and edit backups are in the related local EDA
+output directories. These files are outside the Git publish allowlist.
+
+Physical acceptance remains open for charge current and USB power transitions,
+CH340N behavior after USB disconnect, battery current during scanning, and RF
+matching and range with the assembled enclosure and battery. The two physical
+boards tested earlier are documented in [HARDWARE_BRINGUP.md](HARDWARE_BRINGUP.md).
