@@ -413,3 +413,39 @@ Physical acceptance remains open for charge current and USB power transitions,
 CH340N behavior after USB disconnect, battery current during scanning, and RF
 matching and range with the assembled enclosure and battery. The two physical
 boards tested earlier are documented in [HARDWARE_BRINGUP.md](HARDWARE_BRINGUP.md).
+
+## Independent 5 V COB card revision, 24 November 2026
+
+Created a separate EasyEDA Pro 4.1.105 project for the COB revision. It contains
+full-color and monochrome card boards, each with a COB power sheet. Verified
+both boards at 1.2 mm finished thickness, two copper layers and 1 oz outer
+copper. The earlier fabrication exports retained their original checksums.
+
+J1 has two plated through-hole wire pads at 2.54 mm pitch. Pin 1 is
+`COB_5V` and pin 2 is `GND`. The TPS2116 prioritizes USB and falls back
+to the protected one-cell battery. The TPS61023 boost stage supplies the
+nominal 5 V rail in battery mode. A 100 kΩ pull-down keeps the stage disabled
+until P0.02, shared with H2 pin 1, is driven high. Firmware activation and
+hardware acceptance are pending.
+[TI power multiplexer data sheet](https://www.ti.com/lit/ds/symlink/tps2116.pdf)
+[TI boost-converter data sheet](https://www.ti.com/lit/ds/symlink/tps61023.pdf)
+
+The design target is 500 mA at the output. A 0.5 m strip must therefore
+draw at most 5 W/m at 5 V. The stage can draw about 1 A from a 3.0 V cell at
+that output and 85% assumed efficiency, before other card loads. The strip
+rating, protected cell discharge capability, output voltage under load, and
+simultaneous radio performance still need physical checks.
+
+- Verified 103 PCB component designators and their pin nets against both
+  schematic variants. Each PCB has 31 new teardrops on the COB routing and
+  153 teardrops total after the editor rebuilt the inherited transitions in
+  the copied project.
+- Ran DRC after layout, teardrops and stackup changes. Each variant reports
+  zero ratlines, the 16 previously accepted clearance markers, and one
+  editor netlist diagnostic. The exported per-pin netlists agree across
+  both schematics and both PCBs.
+- Rechecked the project archive and both Gerber ZIPs. The copper, soldermask,
+  outline and drill geometry match across the two Gerber packages. The color
+  package includes the four JLC color-print files and the monochrome package
+  uses standard silkscreen. The archive, Gerbers and checksum manifest are
+  in the local `outputs/eda-card-cob-2026-11-24/` directory.
