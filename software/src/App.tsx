@@ -927,7 +927,6 @@ export default function App() {
         </a>
         <div className="workspace-label">
           {t("你的同频空间")}
-          <span>01</span>
         </div>
         <nav aria-label={t("主导航")}>
           {NAV.map((item) => (
