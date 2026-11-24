@@ -1,0 +1,22 @@
+{
+	admin off
+	auto_https disable_redirects
+}
+
+https://ent01.mozelle.top:2053 {
+	tls {
+		issuer acme {
+			disable_tlsalpn_challenge
+		}
+	}
+	root * /srv/university-radar-preview/site
+	@landing {
+		path /
+		not query study=1
+	}
+	redir @landing /?study=1 302
+	header X-Content-Type-Options nosniff
+	header Referrer-Policy no-referrer
+	encode gzip
+	file_server
+}

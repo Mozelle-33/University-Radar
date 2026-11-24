@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import {
   canDiscover,
   isEncounter,
+  validTags,
   type Encounter,
   type Profile,
 } from "../domain";
@@ -79,7 +80,10 @@ export class RadarBleClient {
     try {
       await BleClient.initialize({ androidNeverForLocation: true });
     } catch (error) {
-      if (error instanceof Error && /BLE is not supported\.?/i.test(error.message))
+      if (
+        error instanceof Error &&
+        /BLE is not supported\.?/i.test(error.message)
+      )
         throw new Error(
           "当前设备不支持低功耗蓝牙（BLE），无法连接雷达。请使用支持 BLE 的手机。",
         );
@@ -213,7 +217,9 @@ export class RadarBleClient {
               : null,
     };
   }
-  async configure(profile: Profile, revision: number): Promise<void> {
+  async configure(profile: Profile, revision: number): Promise<boolean> {
+    if (!validTags(profile.tags, "device"))
+      throw new Error("设备不支持所选标签，请在设备空间重新选择。");
     const active = canDiscover(profile);
     const data = await this.command({
       cmd: "configure",
@@ -233,6 +239,7 @@ export class RadarBleClient {
     });
     if (data.appliedRevision !== revision)
       throw new Error("设备未确认配置版本；请重新同步。");
+    return active;
   }
   async encounters(cursor: string): Promise<EncounterPage> {
     const data = await this.command({ cmd: "encounters", cursor, limit: 8 });

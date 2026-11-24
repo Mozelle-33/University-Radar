@@ -1,7 +1,10 @@
 import { initialState, parseState, type AppState } from "./domain";
 import { Capacitor } from "@capacitor/core";
 import { t } from "./i18n";
-export const STORAGE_KEY = "university-radar:v1";
+import { storageKeyFor } from "./study";
+export const STORAGE_KEY = storageKeyFor(
+  typeof window === "undefined" ? "" : window.location.search,
+);
 export function loadState(): { state: AppState; warning: string | null } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -22,6 +25,14 @@ export function loadState(): { state: AppState; warning: string | null } {
 }
 export function saveState(state: AppState): boolean {
   try {
+    const previous = localStorage.getItem(STORAGE_KEY);
+    if (previous !== null) {
+      try {
+        if (!parseState(JSON.parse(previous))) return false;
+      } catch {
+        return false;
+      }
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   } catch {
@@ -34,29 +45,43 @@ export async function downloadState(state: AppState) {
     null,
     2,
   );
+  await downloadFile(
+    "university-radar-export.json",
+    data,
+    "application/json",
+    t("University Radar 本机数据"),
+  );
+}
+
+export async function downloadFile(
+  name: string,
+  data: string,
+  mime: string,
+  title: string,
+) {
   if (Capacitor.isNativePlatform()) {
     const [{ Filesystem, Directory, Encoding }, { Share }] = await Promise.all([
       import("@capacitor/filesystem"),
       import("@capacitor/share"),
     ]);
     const file = await Filesystem.writeFile({
-      path: "university-radar-export.json",
+      path: name,
       data,
       directory: Directory.Cache,
       encoding: Encoding.UTF8,
     });
     await Share.share({
-      title: t("University Radar 本机数据"),
+      title,
       files: [file.uri],
       dialogTitle: t("保存或分享数据备份"),
     });
     return;
   }
-  const blob = new Blob([data], { type: "application/json" });
+  const blob = new Blob([data], { type: mime });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "university-radar-export.json";
+  link.download = name;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

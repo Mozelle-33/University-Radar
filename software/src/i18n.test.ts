@@ -2,7 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { getLanguage, setLanguage, t } from "./i18n";
-import { FIELD_NAMES, INTENTS, SCHOOLS, TAGS, initialState } from "./domain";
+import {
+  DEMO_TAGS,
+  FIELD_NAMES,
+  INTENTS,
+  SCHOOLS,
+  TAGS,
+  initialState,
+} from "./domain";
 
 afterEach(() => {
   setLanguage("zh");
@@ -71,7 +78,11 @@ describe("Chinese and English application language", () => {
     };
     walk(file);
     expect(unwrapped).toEqual([]);
-    for (const path of ["./ble/client.ts", "./storage.ts"]) {
+    for (const path of [
+      "./ble/client.ts",
+      "./ble/protocol.ts",
+      "./storage.ts",
+    ]) {
       const other = ts.createSourceFile(
         path,
         readFileSync(new URL(path, import.meta.url), "utf8"),
@@ -88,6 +99,7 @@ describe("Chinese and English application language", () => {
     const shared = [
       ...INTENTS,
       ...TAGS.map((v) => v.name),
+      ...DEMO_TAGS.map((v) => v.name),
       ...SCHOOLS.map((v) => v.name),
       ...Object.values(FIELD_NAMES),
       "同校校友",

@@ -10,6 +10,7 @@
 !/shared/
 !/scripts/
 !/docs/
+!/deployment/
 /scripts/*
 !/scripts/generate_protocol.py
 !/scripts/verify_artifacts.py
@@ -18,6 +19,7 @@
 !/docs/联调与验收.md
 !/docs/验证记录.md
 !/docs/DEVELOPMENT_LOG.md
+!/docs/UX_IMPROVEMENTS_2026-11-24.md
 !/docs/STLINK_SWD.md
 !/docs/HARDWARE_BRINGUP.md
 !/docs/VALIDATION_2026-11-01.json

@@ -50,15 +50,22 @@ import {
   matchReasons,
   mergeEncounters,
   SCHOOLS,
-  TAGS,
+  tagCatalog,
   tagName,
   type AppState,
   type Encounter,
   type Field,
   type Profile,
 } from "./domain";
-import { downloadState, loadState, saveState, STORAGE_KEY } from "./storage";
-import { getLanguage, setLanguage, t } from "./i18n";
+import {
+  downloadFile,
+  downloadState,
+  loadState,
+  saveState,
+  STORAGE_KEY,
+} from "./storage";
+import { englishLabel, getLanguage, setLanguage, t } from "./i18n";
+import { STUDY_MODE } from "./study";
 import {
   bluetoothAvailability,
   RadarBleClient,
@@ -66,7 +73,16 @@ import {
 } from "./ble/client";
 
 type Tab = "radar" | "encounters" | "network" | "profile";
-type Dialog = "device" | "intent" | "privacy" | "reset" | "source" | null;
+type Dialog =
+  | "device"
+  | "intent"
+  | "privacy"
+  | "reset"
+  | "source"
+  | "sharing"
+  | "feedback"
+  | "tag"
+  | null;
 const NAV = [
   { id: "radar", label: "雷达", icon: Radar },
   { id: "encounters", label: "相遇", icon: Layers3 },
@@ -74,6 +90,7 @@ const NAV = [
   { id: "profile", label: "我的", icon: UserRound },
 ] as const;
 const FIELD_LIST: Field[] = ["name", "major", "contact"];
+const TAG_GROUPS = ["兴趣", "专业", "研究", "职业"] as const;
 
 function Modal({
   title,
@@ -260,12 +277,25 @@ function ProfileEditor({
   profile,
   onSave,
   isDemo,
+  onSuggestTag,
 }: {
   profile: Profile;
   onSave: (p: Partial<Profile>) => void;
   isDemo: boolean;
+  onSuggestTag: () => void;
 }) {
   const [draft, setDraft] = useState(profile);
+  const [tagQuery, setTagQuery] = useState("");
+  const [tagGroup, setTagGroup] = useState("");
+  const query = tagQuery.trim().toLowerCase();
+  const allTags = tagCatalog(isDemo ? "demo" : "device");
+  const filteredTags = allTags.filter(
+    (tag) =>
+      (!tagGroup || tag.group === tagGroup) &&
+      [tag.name, englishLabel(tag.name)].some((name) =>
+        name.toLowerCase().includes(query),
+      ),
+  );
   function submit(e: FormEvent) {
     e.preventDefault();
     onSave(draft);
@@ -350,31 +380,81 @@ function ProfileEditor({
           {t("我的标签")}
           <small>{t("选择希望用于同频匹配的方向")}</small>
         </legend>
-        <div className="tag-picker">
-          {TAGS.map((tag) => (
-            <button
-              type="button"
-              aria-pressed={draft.tags.includes(tag.id)}
-              className={draft.tags.includes(tag.id) ? "picked" : ""}
-              key={tag.id}
-              onClick={() =>
-                setDraft({
-                  ...draft,
-                  tags: draft.tags.includes(tag.id)
-                    ? draft.tags.filter((id) => id !== tag.id)
-                    : [...draft.tags, tag.id],
-                })
-              }
+        <div className="tag-filters">
+          <label className="form-field">
+            {t("搜索标签")}
+            <input
+              type="search"
+              value={tagQuery}
+              onChange={(e) => setTagQuery(e.target.value)}
+            />
+          </label>
+          <label className="form-field">
+            {t("标签分类")}
+            <select
+              value={tagGroup}
+              onChange={(e) => setTagGroup(e.target.value)}
             >
-              {draft.tags.includes(tag.id) ? (
-                <Check size={13} />
-              ) : (
-                <Plus size={13} />
-              )}
-              {t(tag.name)}
-            </button>
-          ))}
+              <option value="">{t("全部分类")}</option>
+              {TAG_GROUPS.filter((group) =>
+                allTags.some((tag) => tag.group === group),
+              ).map((group) => (
+                <option key={group} value={group}>
+                  {t(group)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+        {TAG_GROUPS.map((group) => {
+          const groupTags = filteredTags.filter((tag) => tag.group === group);
+          if (!groupTags.length) return null;
+          return (
+            <div className="tag-section" key={group}>
+              <h3>{t(group)}</h3>
+              <div className="tag-picker">
+                {groupTags.map((tag) => (
+                  <button
+                    type="button"
+                    aria-pressed={draft.tags.includes(tag.id)}
+                    className={draft.tags.includes(tag.id) ? "picked" : ""}
+                    key={tag.id}
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        tags: draft.tags.includes(tag.id)
+                          ? draft.tags.filter((id) => id !== tag.id)
+                          : [...draft.tags, tag.id],
+                      })
+                    }
+                  >
+                    {draft.tags.includes(tag.id) ? (
+                      <Check size={13} />
+                    ) : (
+                      <Plus size={13} />
+                    )}
+                    {t(tag.name)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        {!filteredTags.length && (
+          <p className="task-hint" role="status">
+            {t("没有找到符合条件的标签。")}
+          </p>
+        )}
+        <p className="task-hint">
+          {draft.tags.length} {t("项已选")}
+        </p>
+        <button
+          className="outline compact"
+          type="button"
+          onClick={onSuggestTag}
+        >
+          {t("申请新标签")}
+        </button>
       </fieldset>
       <div className="form-grid">
         <label className="form-field">
@@ -423,6 +503,139 @@ function ProfileEditor({
   );
 }
 
+function FeedbackEditor({ tagRequest }: { tagRequest: boolean }) {
+  const [message, setMessage] = useState("");
+  const [group, setGroup] = useState<string>(TAG_GROUPS[0]);
+  const [result, setResult] = useState("");
+  const [saving, setSaving] = useState(false);
+  const title = tagRequest ? t("申请新标签") : t("体验反馈");
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!message.trim() || saving) return;
+    setSaving(true);
+    setResult("");
+    const note = [
+      "University Radar · UX2",
+      title,
+      ...(tagRequest ? [t(group)] : []),
+      "",
+      message.trim(),
+    ].join("\n");
+    try {
+      await downloadFile(
+        tagRequest ? "radar-tag-request.txt" : "radar-feedback.txt",
+        note,
+        "text/plain;charset=utf-8",
+        title,
+      );
+      setResult("请把生成的文件发回邀请你的项目组。");
+    } catch {
+      setResult("未能保存文件。请复制输入内容并发回项目组。");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form className="feedback-form" onSubmit={(event) => void submit(event)}>
+      <p className="task-hint">
+        {tagRequest
+          ? t(
+              "下载标签申请并交给项目组审核。审核通过后，团队可在后续版本加入公共标签库。",
+            )
+          : t(
+              "写下你尝试了什么、哪里卡住或有什么建议。下载后，通过收到测试链接的渠道交给项目组。",
+            )}
+      </p>
+      <p className="task-hint">{t("请勿填写真实姓名或联系方式。")}</p>
+      {tagRequest && (
+        <label className="form-field">
+          {t("标签分类")}
+          <select
+            value={group}
+            onChange={(event) => setGroup(event.target.value)}
+          >
+            {TAG_GROUPS.map((item) => (
+              <option key={item} value={item}>
+                {t(item)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <label className="form-field">
+        {tagRequest ? t("建议标签名称") : t("反馈内容")}
+        <textarea
+          rows={tagRequest ? 2 : 5}
+          maxLength={tagRequest ? 40 : 1200}
+          value={message}
+          onChange={(event) => {
+            setMessage(event.target.value);
+            setResult("");
+          }}
+          required
+        />
+      </label>
+      <button
+        className="primary full"
+        disabled={!message.trim() || saving}
+        type="submit"
+      >
+        {tagRequest ? t("下载标签申请") : t("下载反馈")}
+      </button>
+      {result && (
+        <p className="task-hint" role="status">
+          {t(result)}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function SharingEditor({
+  profile,
+  onSave,
+}: {
+  profile: Profile;
+  onSave: (fields: Field[]) => void;
+}) {
+  const [draft, setDraft] = useState(profile.revealFields);
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave(draft);
+      }}
+    >
+      <p className="task-hint">
+        {t("请选择至少一项愿意分享的信息。演示仅使用本机资料。")}
+      </p>
+      <div className="share-fields">
+        {FIELD_LIST.map((field) => (
+          <label className="check-row" key={field}>
+            <input
+              type="checkbox"
+              checked={draft.includes(field)}
+              onChange={() =>
+                setDraft((fields) =>
+                  fields.includes(field)
+                    ? fields.filter((item) => item !== field)
+                    : [...fields, field],
+                )
+              }
+            />
+            {t(FIELD_NAMES[field])}
+          </label>
+        ))}
+      </div>
+      <button className="primary full" type="submit">
+        {t("保存并返回相遇")}
+      </button>
+    </form>
+  );
+}
+
 export default function App() {
   const [language, setUiLanguage] = useState(getLanguage);
   useEffect(() => {
@@ -448,6 +661,9 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [deviceError, setDeviceError] = useState("");
   const [syncedRevision, setSyncedRevision] = useState(0);
+  const [confirmedDiscovery, setConfirmedDiscovery] = useState<boolean | null>(
+    null,
+  );
   const [lastSync, setLastSync] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
   const [hasMore, setHasMore] = useState(false);
@@ -460,6 +676,7 @@ export default function App() {
     client.current = new RadarBleClient(() => {
       setDevice(null);
       setSyncedRevision(0);
+      setConfirmedDiscovery(null);
       setLastSync(null);
       setHasMore(false);
     });
@@ -546,6 +763,30 @@ export default function App() {
         .includes(search.toLowerCase()),
     );
   const dirty = !isDemo && (!device || syncedRevision !== state.configRevision);
+  const discoveryStatus = isDemo
+    ? active
+      ? t("演示发现已开启")
+      : t("演示发现已暂停")
+    : dirty
+      ? t("待同步至设备")
+      : t("已同步到设备");
+  const discoveryDetail = isDemo
+    ? t("此开关立即更新演示状态。")
+    : confirmedDiscovery === null
+      ? t("设备状态待确认。请连接雷达并同步设置。")
+      : confirmedDiscovery
+        ? t("设备上次确认：允许发现，意向到期后暂停。")
+        : t("设备上次确认：发现已暂停。");
+  const discoverySync = !isDemo && dirty && (
+    <button
+      className="outline compact"
+      type="button"
+      disabled={busy}
+      onClick={() => (device ? void sync() : setDialog("device"))}
+    >
+      {device ? t("同步设备") : t("连接设备")}
+    </button>
+  );
   async function connect() {
     setBusy(true);
     setDeviceError("");
@@ -555,6 +796,7 @@ export default function App() {
         throw new Error(t("设备连接已断开，请重新连接。"));
       setDevice(result);
       setSyncedRevision(0);
+      setConfirmedDiscovery(null);
       setLastSync(null);
       setHasMore(false);
       notify(t("设备已连接，点击同步写入设置"));
@@ -585,9 +827,10 @@ export default function App() {
         if (client.current?.device?.deviceId !== device.id)
           throw new Error(t("设备连接已断开，请重新连接后同步。"));
       };
-      await client.current!.configure(profile, revision);
+      const discovery = await client.current!.configure(profile, revision);
       ensureConnected();
       setSyncedRevision(revision);
+      setConfirmedDiscovery(discovery);
       const page = await client.current!.encounters(
         cursors.current[device.id] ?? "",
       );
@@ -658,7 +901,7 @@ export default function App() {
   );
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${dialog || selected ? " has-dialog" : ""}`}>
       {!state.onboarded && languageControl}
       <a className="skip-link" href="#main">
         {t("跳到主要内容")}
@@ -768,6 +1011,20 @@ export default function App() {
           </div>
         </header>
         <main id="main">
+          {STUDY_MODE && (
+            <div className="study-notice">
+              {t(
+                "本测试使用虚构记录，不会发送真实消息。资料仅保存在此浏览器，不会自动提交给团队，请勿填写真实姓名或联系方式。",
+              )}
+              <button
+                type="button"
+                className="outline compact"
+                onClick={() => setDialog("feedback")}
+              >
+                {t("体验反馈")}
+              </button>
+            </div>
+          )}
           {storageWarning && (
             <div role="alert" className="warning-banner">
               {t(storageWarning)}
@@ -833,7 +1090,10 @@ export default function App() {
                       {profile.mode === "student"
                         ? t("在校同频")
                         : t("校友同频")}{" "}
-                      · {active ? t("发现已开启") : t("发现已暂停")}
+                      ·{" "}
+                      {active
+                        ? t("本机发现设置：开启")
+                        : t("本机发现设置：暂停")}
                     </Pill>
                     <h2>
                       {t("相遇自有频率。")}
@@ -898,9 +1158,8 @@ export default function App() {
                       {isDemo ? (
                         <>
                           <span className="status-dot" />
-                          {t("模拟连接")}
                           <Battery size={15} />
-                          72%
+                          {t("模拟电量")} 72%
                         </>
                       ) : device ? (
                         <>
@@ -913,6 +1172,11 @@ export default function App() {
                         t("尚未连接真实设备")
                       )}
                     </span>
+                    {isDemo && (
+                      <span className="device-demo-status">
+                        {t("实物未连接")}
+                      </span>
+                    )}
                   </div>
                   {!isDemo && device && (
                     <p className="device-serial">
@@ -928,7 +1192,13 @@ export default function App() {
                     }
                   >
                     <RefreshCw size={15} className={busy ? "spinning" : ""} />
-                    {isDemo || device ? syncLabel : t("连接设备")}
+                    {isDemo
+                      ? busy
+                        ? t("正在模拟同步…")
+                        : t("模拟同步")
+                      : device
+                        ? syncLabel
+                        : t("连接设备")}
                   </button>
                   <small className="device-foot">
                     {lastSync
@@ -1079,6 +1349,26 @@ export default function App() {
 
           {tab === "encounters" && (
             <>
+              <section className="flow-guide" aria-label={t("相遇与连接")}>
+                <p>
+                  <strong>{t("相遇")}</strong> {t("查看匿名记录和共同标签。")}
+                </p>
+                <p>
+                  <strong>{t("连接")}</strong>{" "}
+                  {isDemo
+                    ? t("从相遇发起演示邀请，双方同意后查看分享的信息。")
+                    : t(
+                        "用于查看邀请和双方同意后的联系。真实设备记录目前保持匿名。",
+                      )}
+                </p>
+                <button
+                  type="button"
+                  className="outline compact"
+                  onClick={() => setTab("network")}
+                >
+                  {t("查看邀请和连接")}
+                </button>
+              </section>
               <div className="list-toolbar">
                 <div className="filter-tabs" aria-label={t("筛选相遇")}>
                   {(
@@ -1141,6 +1431,19 @@ export default function App() {
 
           {tab === "network" && (
             <>
+              <section className="flow-guide" aria-label={t("相遇与连接")}>
+                <p>
+                  <strong>{t("连接")}</strong>{" "}
+                  {t("在这里查看邀请和已经建立的连接。")}
+                </p>
+                <button
+                  type="button"
+                  className="outline compact"
+                  onClick={() => setTab("encounters")}
+                >
+                  {t("回到匿名相遇")}
+                </button>
+              </section>
               <div className="note">
                 <ShieldCheck size={16} />
                 <span>
@@ -1247,6 +1550,7 @@ export default function App() {
                   profile={profile}
                   onSave={updateProfile}
                   isDemo={isDemo}
+                  onSuggestTag={() => setDialog("tag")}
                 />
               </section>
               <aside className="right-column">
@@ -1275,11 +1579,7 @@ export default function App() {
                   <div className="setting-row">
                     <div>
                       <strong>{t("允许发现")}</strong>
-                      <p>
-                        {active
-                          ? t("当前设置允许设备发现")
-                          : t("需授权标签及有效意向")}
-                      </p>
+                      <p role="status">{discoveryStatus}</p>
                     </div>
                     <Toggle
                       label={t("允许发现")}
@@ -1289,9 +1589,8 @@ export default function App() {
                       }
                     />
                   </div>
-                  <p className="small-print">
-                    {t("设备需同步后才应用修改。现有记录和已建立连接会保留。")}
-                  </p>
+                  <p className="task-hint">{discoveryDetail}</p>
+                  {discoverySync}
                   <button
                     className="setting-link"
                     onClick={() => setDialog("device")}
@@ -1415,20 +1714,26 @@ export default function App() {
                 {t("先体验演示")}
                 <ArrowRight size={17} />
               </button>
-              <button
-                className="outline full"
-                onClick={() => {
-                  commit({ ...initialState(), onboarded: true });
-                  setTab("profile");
-                }}
-              >
-                {t("设置我的真实设备")}
-                <Bluetooth size={16} />
-              </button>
+              {!STUDY_MODE && (
+                <button
+                  className="outline full"
+                  onClick={() => {
+                    commit({ ...initialState(), onboarded: true });
+                    setTab("profile");
+                  }}
+                >
+                  {t("设置我的真实设备")}
+                  <Bluetooth size={16} />
+                </button>
+              )}
               <small>
-                {t(
-                  "演示使用虚构资料，仅保存在本机。当前版本无云端账号与真实消息服务。",
-                )}
+                {STUDY_MODE
+                  ? t(
+                      "本测试使用虚构记录，不会发送真实消息。资料仅保存在此浏览器，不会自动提交给团队，请勿填写真实姓名或联系方式。",
+                    )
+                  : t(
+                      "演示使用虚构资料，仅保存在本机。当前版本无云端账号与真实消息服务。",
+                    )}
               </small>
             </div>
           </section>
@@ -1447,6 +1752,13 @@ export default function App() {
                 : t(bluetoothAvailability().note)}
             </span>
           </div>
+          {!isDemo && !device && (
+            <p className="task-hint">
+              {t(
+                "给雷达上电并进入配对模式，允许蓝牙访问，选择设备后同步设置与记录。",
+              )}
+            </p>
+          )}
           <div className="device-summary">
             <span className="device-summary-icon">
               <Radio size={32} />
@@ -1593,7 +1905,7 @@ export default function App() {
           <div className="setting-row">
             <div>
               <strong>{t("暂停发现")}</strong>
-              <p>{t("需同步至设备后生效")}</p>
+              <p role="status">{discoveryStatus}</p>
             </div>
             <button
               className="outline compact"
@@ -1603,6 +1915,8 @@ export default function App() {
               {profile.discovery ? t("暂停") : t("开启")}
             </button>
           </div>
+          <p className="task-hint">{discoveryDetail}</p>
+          {discoverySync}
           <button
             className="setting-link"
             onClick={() => {
@@ -1672,18 +1986,49 @@ export default function App() {
             {t("清除当前数据并进入演示")}
             <Sparkles size={16} />
           </button>
-          <button
-            disabled={busy}
-            className="outline full"
-            onClick={() => void reset({ ...initialState(), onboarded: true })}
-          >
-            {t("清除当前数据并设置真实设备")}
-            <Bluetooth size={16} />
-          </button>
+          {!STUDY_MODE && (
+            <>
+              <p className="task-hint">
+                {t(
+                  "给雷达上电并进入配对模式，允许蓝牙访问，选择设备后同步设置与记录。",
+                )}
+              </p>
+              <button
+                disabled={busy}
+                className="outline full"
+                onClick={() =>
+                  void reset({ ...initialState(), onboarded: true })
+                }
+              >
+                {t("清除当前数据并设置真实设备")}
+                <Bluetooth size={16} />
+              </button>
+            </>
+          )}
         </Modal>
       )}
 
-      {selected && (
+      {(dialog === "feedback" || dialog === "tag") && (
+        <Modal
+          key={dialog}
+          title={dialog === "tag" ? t("申请新标签") : t("体验反馈")}
+          onClose={closeDialog}
+        >
+          <FeedbackEditor tagRequest={dialog === "tag"} />
+        </Modal>
+      )}
+      {dialog === "sharing" && selected && (
+        <Modal title={t("修改我的分享范围")} onClose={closeDialog}>
+          <SharingEditor
+            profile={profile}
+            onSave={(revealFields) => {
+              updateProfile({ revealFields });
+              closeDialog();
+            }}
+          />
+        </Modal>
+      )}
+      {selected && !dialog && (
         <Modal
           title={`${t("同频者")} ${selected.peerId}`}
           onClose={closeEncounter}
@@ -1718,7 +2063,7 @@ export default function App() {
               <span>{t("当前规则下暂无同频原因")}</span>
             )}
           </div>
-          <div className="note">
+          <div className="note encounter-privacy">
             <LockKeyhole size={16} />
             <span>
               {t(
@@ -1772,6 +2117,18 @@ export default function App() {
             <div className="pending-box">
               <h3>{t("等待对方同意")}</h3>
               <p>{t("这是本机演示邀请，没有真实用户收到消息。")}</p>
+              {tab !== "network" && (
+                <button
+                  type="button"
+                  className="outline full"
+                  onClick={() => {
+                    closeEncounter();
+                    setTab("network");
+                  }}
+                >
+                  {t("查看邀请和连接")}
+                </button>
+              )}
               <button
                 className="primary full"
                 onClick={() => {
@@ -1806,11 +2163,16 @@ export default function App() {
                     </div>
                   ))
                 ) : (
-                  <p>{t("尚未选择公开字段。可前往隐私设置主动勾选。")}</p>
+                  <p className="task-hint" id="sharing-required">
+                    {t("请选择至少一项愿意分享的信息。")}
+                  </p>
                 )}
               </div>
               <button
                 className="primary full"
+                aria-describedby={
+                  !profile.revealFields.length ? "sharing-required" : undefined
+                }
                 disabled={
                   selected.blocked ||
                   selected.hidden ||
@@ -1828,11 +2190,8 @@ export default function App() {
                 <ArrowUpRight size={16} />
               </button>
               <button
-                className="text-button full"
-                onClick={() => {
-                  setSelectedId(null);
-                  setDialog("privacy");
-                }}
+                className={`${profile.revealFields.length ? "outline" : "primary"} full`}
+                onClick={() => setDialog("sharing")}
               >
                 {t("修改我的分享范围")}
                 <Settings2 size={14} />

@@ -167,7 +167,7 @@ describe("real BLE adapter contract", () => {
     const device = await client.connect();
     expect(device.status.battery).toBe(72);
     const profile = demoState().profile;
-    await client.configure(profile, 5);
+    await expect(client.configure(profile, 5)).resolves.toBe(true);
     const request = requests.at(-1)!;
     expect(request.config).toMatchObject({
       discovery: true,
@@ -197,7 +197,7 @@ describe("real BLE adapter contract", () => {
   it("sends disabled discovery and no tags when the intent has expired", async () => {
     const client = new RadarBleClient();
     await client.connect();
-    await client.configure(demoState(1000).profile, 1);
+    await expect(client.configure(demoState(1000).profile, 1)).resolves.toBe(false);
     expect(requests.at(-1)?.config).toMatchObject({
       discovery: false,
       tags: [],

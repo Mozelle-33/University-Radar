@@ -28,6 +28,75 @@ export function setLanguage(next: Language): void {
 }
 
 const en: Record<string, string> = {
+  搜索标签: "Search tags",
+  标签分类: "Tag category",
+  全部分类: "All categories",
+  "没有找到符合条件的标签。": "No tags match your search.",
+  项已选: "selected",
+  申请新标签: "Suggest a tag",
+  下载标签申请: "Download tag suggestion",
+  建议标签名称: "Suggested tag name",
+  "下载标签申请并交给项目组审核。审核通过后，团队可在后续版本加入公共标签库。":
+    "Download the suggestion and send it to the project team for review. Approved tags can be added to the catalog in a future release.",
+  体验反馈: "Give feedback",
+  反馈内容: "Feedback",
+  下载反馈: "Download feedback",
+  "写下你尝试了什么、哪里卡住或有什么建议。下载后，通过收到测试链接的渠道交给项目组。":
+    "Describe what you tried, where you got stuck, or what you would change. Download the note and send it back through the channel where you received the test link.",
+  "请勿填写真实姓名或联系方式。":
+    "Please leave out your real name and contact details.",
+  "请把生成的文件发回邀请你的项目组。":
+    "Send the downloaded file to the project team that invited you.",
+  "未能保存文件。请复制输入内容并发回项目组。":
+    "Could not save the file. Copy your note and send it to the project team.",
+  "请选择至少一项愿意分享的信息。":
+    "Choose at least one detail you are willing to share.",
+  "请选择至少一项愿意分享的信息。演示仅使用本机资料。":
+    "Choose at least one detail you are willing to share. The demo only uses local data.",
+  保存并返回相遇: "Save and return to encounter",
+  相遇与连接: "Encounters and connections",
+  "查看匿名记录和共同标签。": "View anonymous records and shared tags.",
+  "从相遇发起演示邀请，双方同意后查看分享的信息。":
+    "Send a demo invitation from an encounter. Shared details appear after both sides agree.",
+  "用于查看邀请和双方同意后的联系。真实设备记录目前保持匿名。":
+    "View invitations and connections after mutual consent. Device records currently remain anonymous.",
+  "在这里查看邀请和已经建立的连接。":
+    "Find your invitations and established connections here.",
+  查看邀请和连接: "View invitations and connections",
+  回到匿名相遇: "Back to anonymous encounters",
+  模拟电量: "Simulated battery",
+  实物未连接: "No physical device connected",
+  模拟同步: "Simulate sync",
+  "正在模拟同步…": "Simulating sync…",
+  "给雷达上电并进入配对模式，允许蓝牙访问，选择设备后同步设置与记录。":
+    "Power on the radar and enter pairing mode. Allow Bluetooth access, select the device, then sync settings and records.",
+  "本机发现设置：开启": "Local discovery setting: on",
+  "本机发现设置：暂停": "Local discovery setting: paused",
+  演示发现已开启: "Demo discovery is on",
+  演示发现已暂停: "Demo discovery is paused",
+  已同步到设备: "Synced to device",
+  "此开关立即更新演示状态。": "This switch applies immediately in the demo.",
+  "设备状态待确认。请连接雷达并同步设置。":
+    "Device state is unconfirmed. Connect and sync the radar.",
+  "设备上次确认：允许发现，意向到期后暂停。":
+    "Last device confirmation: discovery allowed until the intent expires.",
+  "设备上次确认：发现已暂停。": "Last device confirmation: discovery paused.",
+  "设备不支持所选标签，请在设备空间重新选择。":
+    "The device does not support these tags. Select tags again in the device space.",
+  篮球: "Basketball",
+  电影: "Film",
+  阅读: "Reading",
+  计算机科学: "Computer science",
+  数据科学: "Data science",
+  电子工程: "Electronic engineering",
+  商科与管理: "Business and management",
+  用户研究: "User research",
+  可持续发展: "Sustainability",
+  实验方法: "Experimental methods",
+  实习经验: "Internship experience",
+  职业转型: "Career change",
+  "本测试使用虚构记录，不会发送真实消息。资料仅保存在此浏览器，不会自动提交给团队，请勿填写真实姓名或联系方式。":
+    "This study uses fictional records and sends no real messages. Data stays in this browser and is not automatically sent to the team. Please do not enter your real name or contact details.",
   雷达: "Radar",
   相遇: "Encounters",
   连接: "Connections",
@@ -401,6 +470,16 @@ const en: Record<string, string> = {
   "设备记录编号无效。": "Invalid device record ID.",
   "设备相遇记录不符合 v1 协议。":
     "The device encounter does not conform to protocol v1.",
+  "协议消息过大，请减少每批记录数量。":
+    "The protocol message is too large. Reduce the batch size.",
+  "设备返回了无效的协议帧。": "The device returned an invalid protocol frame.",
+  "协议分片序号无效。": "Invalid protocol fragment index.",
+  "非末尾分片长度无效。": "Invalid length for a non-final fragment.",
+  "未完成的协议消息过多。": "Too many incomplete protocol messages.",
+  "协议分片数量不一致。": "Protocol fragment counts do not match.",
+  "重复分片内容不一致。":
+    "Duplicate protocol fragments have different contents.",
+  "设备响应过大。": "The device response is too large.",
   "本机数据格式无效，已打开空白会话。原数据未被覆盖。":
     "Local data is invalid. A blank session was opened without overwriting it.",
   "无法读取本机存储。请检查浏览器存储权限。":
@@ -411,7 +490,9 @@ const en: Record<string, string> = {
 
 /** Translate application-owned labels only; caller-provided content remains unchanged. */
 export function t(value: string): string {
-  return language === "en" && Object.prototype.hasOwnProperty.call(en, value)
-    ? en[value]
-    : value;
+  return language === "en" ? englishLabel(value) : value;
+}
+
+export function englishLabel(value: string): string {
+  return Object.prototype.hasOwnProperty.call(en, value) ? en[value] : value;
 }

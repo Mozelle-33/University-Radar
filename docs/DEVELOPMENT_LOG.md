@@ -341,3 +341,23 @@ dynamic viewport units. Vite's production target includes iOS/Safari 15, so
 CSS minification retains the tested fallbacks rather than dropping them for
 the newer default browser baseline. See [Safari 15.4 release notes](https://developer.apple.com/documentation/safari-release-notes/safari-15_4-release-notes)
 and [Vite build targets](https://vite.dev/config/build-options.html#build-target).
+
+### Remote software-only study preview on 15 November
+
+An explicit `?study=1` entry gives participants an isolated local-storage space,
+fictional encounters and visible Chinese/English explanations that no real
+messages are sent and data is not automatically collected. The study entry
+does not offer hardware setup. It is a usability prototype rather than a real
+account or messaging service. An existing malformed or unsupported local profile
+is now preserved against accidental overwrite. BLE protocol error translations
+were completed and covered by the dictionary check.
+
+`npm test` (36 tests), the production web build, Android/iOS asset sync and
+dependency audit passed. The live HTTPS study entry was exercised in an isolated
+mobile-sized browser context for language switching, local data separation,
+reload, demo-only onboarding and absence of uncaught page errors. A separate
+resource-limited Caddy service runs on the VPS HTTPS port 2053; certificate
+HTTP-01 renewal requires port 80. Existing 443 and other listeners were not
+reconfigured, and the existing x-ui and xray-clash services retained their
+original running process IDs immediately after launch. This does not prove
+long-term performance, mobile native BLE, iOS build or real-user messaging.

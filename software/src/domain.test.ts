@@ -4,9 +4,11 @@ import {
   canReveal,
   demoState,
   initialState,
+  isEncounter,
   matchReasons,
   mergeEncounters,
   parseState,
+  validTags,
 } from "./domain";
 
 describe("matching and privacy", () => {
@@ -56,6 +58,7 @@ describe("matching and privacy", () => {
     state.encounters[0] = {
       ...state.encounters[0],
       source: "device",
+      tags: [1, 2, 4],
       connection: "connected",
     };
     expect(canReveal(state.encounters[0])).toBe(false);
@@ -68,5 +71,18 @@ describe("matching and privacy", () => {
     const state = demoState();
     state.profile.tags = [999];
     expect(parseState(state)).toBeNull();
+  });
+  it("supports demo catalog matches without accepting demo tags on real devices", () => {
+    const state = demoState();
+    state.profile.tags = [104];
+    expect(parseState(state)?.profile.tags).toEqual([104]);
+    expect(matchReasons(state.profile, state.encounters[0])).toEqual([
+      "计算机科学",
+    ]);
+    expect(validTags([104], "device")).toBe(false);
+    expect(parseState({ ...state, source: "device" })).toBeNull();
+    expect(isEncounter({ ...state.encounters[0], source: "device" })).toBe(
+      false,
+    );
   });
 });

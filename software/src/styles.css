@@ -1618,6 +1618,12 @@ h1 {
   padding: 13px 20px;
   box-shadow: 0 6px 30px #18332033;
   max-width: 85vw;
+  pointer-events: none;
+}
+.has-dialog .toast {
+  top: calc(8px + env(safe-area-inset-top));
+  bottom: auto;
+  left: 50%;
 }
 .spinning {
   animation: spin 1s linear infinite;
@@ -2503,6 +2509,92 @@ h1 {
   .detail-actions button {
     font-size: 10px;
   }
+}
+.study-notice {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid #cfddbb;
+  border-radius: 10px;
+  background: #edf4e6;
+  color: #284d37;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.study-notice .outline {
+  display: flex;
+  margin-top: 10px;
+}
+.tag-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.tag-section {
+  margin: 14px 0;
+}
+.tag-section h3 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #2d533c;
+}
+.flow-guide {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: #edf4e6;
+  color: #284d37;
+  border-radius: 10px;
+}
+.flow-guide p,
+.task-hint {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #365640;
+}
+.flow-guide p {
+  margin: 0;
+}
+.flow-guide .outline {
+  justify-self: start;
+}
+.device-demo-status {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.875rem;
+  color: #365640;
+}
+.feedback-form textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #a7b998;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+  color: #243a2a;
+}
+.modal .encounter-privacy,
+.modal .pending-box p,
+.modal .small-print {
+  font-size: 0.875rem;
+  color: #3d5442;
+  line-height: 1.6;
+}
+.modal .detail-actions {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.modal .detail-actions button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #365640;
+  background: #f0f4eb;
+  border-radius: 7px;
+}
+.modal .detail-actions button:focus-visible {
+  outline: 2px solid #365640;
+  outline-offset: 2px;
 }
 .language-switch {
   padding: 7px 10px;

@@ -1,0 +1,27 @@
+[Unit]
+Description=University Radar isolated user-study preview
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/university-radar-preview
+StateDirectory=university-radar-preview
+Environment=XDG_DATA_HOME=/var/lib/university-radar-preview
+Environment=XDG_CONFIG_HOME=/var/lib/university-radar-preview
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=128M
+CPUQuota=30%
+ExecStart=/srv/university-radar-preview/caddy run --config /srv/university-radar-preview/Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

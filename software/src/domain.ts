@@ -1,5 +1,22 @@
 import contract from "../../shared/radar-v1.json";
 export const TAGS = contract.tags;
+// Demo-only IDs start outside the firmware v1 tag dictionary.
+export const DEMO_TAGS = [
+  { id: 101, name: "篮球", group: "兴趣" },
+  { id: 102, name: "电影", group: "兴趣" },
+  { id: 103, name: "阅读", group: "兴趣" },
+  { id: 104, name: "计算机科学", group: "专业" },
+  { id: 105, name: "数据科学", group: "专业" },
+  { id: 106, name: "电子工程", group: "专业" },
+  { id: 107, name: "商科与管理", group: "专业" },
+  { id: 108, name: "用户研究", group: "研究" },
+  { id: 109, name: "可持续发展", group: "研究" },
+  { id: 110, name: "实验方法", group: "研究" },
+  { id: 111, name: "实习经验", group: "职业" },
+  { id: 112, name: "职业转型", group: "职业" },
+] as const;
+export const tagCatalog = (source: AppState["source"]) =>
+  source === "demo" ? [...TAGS, ...DEMO_TAGS] : TAGS;
 export const INTENTS = [
   "寻找项目伙伴",
   "聊聊研究方向",
@@ -8,7 +25,9 @@ export const INTENTS = [
 ];
 export const SCHOOLS = contract.schools;
 export const tagName = (id: number) =>
-  TAGS.find((t) => t.id === id)?.name ?? `未知标签 ${id}`;
+  TAGS.find((t) => t.id === id)?.name ??
+  DEMO_TAGS.find((t) => t.id === id)?.name ??
+  `未知标签 ${id}`;
 export type Mode = "student" | "alumni";
 export type Field = "name" | "major" | "contact";
 export const FIELD_NAMES: Record<Field, string> = {
@@ -98,21 +117,21 @@ export function demoState(now = Date.now()): AppState {
     {
       id: "demo-1",
       peerId: "A7F2",
-      tags: [1, 2, 4],
+      tags: [1, 2, 4, 104],
       context: "校园创客交流",
       period: "下午",
     },
     {
       id: "demo-2",
       peerId: "B3D8",
-      tags: [5, 6, 7],
+      tags: [5, 6, 7, 101],
       context: "校园日常",
       period: "下午",
     },
     {
       id: "demo-3",
       peerId: "C9E1",
-      tags: [2, 3],
+      tags: [2, 3, 10, 108, 111],
       context: "研究分享会",
       period: "上午",
     },
@@ -187,12 +206,16 @@ function object(value: unknown): value is Record<string, unknown> {
 function shortString(value: unknown, max: number): value is string {
   return typeof value === "string" && value.length <= max;
 }
-function tags(value: unknown): value is number[] {
+export function validTags(
+  value: unknown,
+  source: AppState["source"],
+): value is number[] {
+  const catalog = tagCatalog(source);
   return (
     Array.isArray(value) &&
-    value.length <= TAGS.length &&
+    value.length <= catalog.length &&
     new Set(value).size === value.length &&
-    value.every((id) => TAGS.some((t) => t.id === id))
+    value.every((id) => catalog.some((t) => t.id === id))
   );
 }
 function fields(value: unknown): value is Field[] {
@@ -211,7 +234,7 @@ export function isEncounter(value: unknown): value is Encounter {
     /^[A-Za-z0-9-]{1,32}$/.test(value.peerId) &&
     ["student", "alumni"].includes(String(value.mode)) &&
     SCHOOLS.some((s) => s.id === value.schoolId) &&
-    tags(value.tags) &&
+    validTags(value.tags, value.source === "demo" ? "demo" : "device") &&
     typeof value.day === "string" &&
     /^\d{4}-\d{2}-\d{2}$/.test(value.day) &&
     ["上午", "下午", "晚间"].includes(String(value.period)) &&
@@ -246,7 +269,7 @@ export function parseState(value: unknown): AppState | null {
     !shortString(p.contact, 100) ||
     !["student", "alumni"].includes(String(p.mode)) ||
     !SCHOOLS.some((s) => s.id === p.schoolId) ||
-    !tags(p.tags) ||
+    !validTags(p.tags, value.source === "demo" ? "demo" : "device") ||
     !shortString(p.intent, 60) ||
     !Number.isFinite(p.intentExpiresAt) ||
     !["discovery", "broadcastConsent", "requireSameSchool"].every(
