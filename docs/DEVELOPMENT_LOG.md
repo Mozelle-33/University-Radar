@@ -399,7 +399,7 @@ EasyEDA project exports, Gerber ZIPs and front/back previews.
 
 | Check | Recorded result |
 | --- | --- |
-| EasyEDA rules and connectivity | Both variants have 0 ratlines and no new DRC markers. The 16 reported markers comprise four NFC footprint/trace clearance markers and twelve USB-C board-cutout clearance markers. |
+| EasyEDA rules and connectivity | Both variants have 0 ratlines and no new DRC markers. The 16 reported markers comprise four NFC footprint/trace clearance markers and twelve USB-C board-cutout clearance markers. On 24 November 2026, the project owner reviewed and accepted all 16 markers for this board revision. |
 | Electrical and mechanical source comparison | 1,541 records match across the color, monochrome and restored active-board snapshots, excluding silkscreen objects. |
 | Gerber and artifact recheck on 24 November | All six final artifacts matched the local manifest's byte counts and SHA-256 values. Both Gerber ZIPs passed CRC checks. The color package contains FCTS and FCBS. The monochrome package contains standard GTO and GBO. |
 | Artwork placement | Both color faces were checked in the EasyEDA preview. Gerber-derived inspection of the monochrome faces confirmed that the new artwork clears exposed pads and reads correctly from each side. |
