@@ -1,0 +1,298 @@
+.native-app {
+  --native-toolbar: calc(59px + env(safe-area-inset-top, 0px));
+  --native-nav: calc(68px + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh;
+}
+
+.native-app .sidebar {
+  display: none;
+}
+
+.native-app .app-body {
+  margin-left: 0;
+}
+
+.native-app .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  height: auto;
+  min-height: var(--native-toolbar);
+  padding: env(safe-area-inset-top, 0px)
+    max(14px, env(safe-area-inset-right, 0px)) 0
+    max(14px, env(safe-area-inset-left, 0px));
+  gap: 8px;
+}
+
+.native-app .native-title {
+  font-size: clamp(1.125rem, 5vw, 1.375rem);
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.native-app .top-actions {
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.native-app .topbar button,
+.native-app .modal button,
+.native-app .welcome button,
+.native-app .text-button,
+.native-app .setting-link,
+.native-app .inline-notice button {
+  min-height: 44px;
+}
+
+.native-app .language-switch,
+.native-app .help-button,
+.native-app .icon-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.native-app .mode-badge {
+  font-size: .72rem;
+  border-radius: 12px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.native-app main {
+  max-width: 610px;
+  padding: 14px max(14px, env(safe-area-inset-right, 0px))
+    calc(var(--native-nav) + 16px) max(14px, env(safe-area-inset-left, 0px));
+}
+
+.native-app .dashboard-grid,
+.native-app .content-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.native-app .content-grid {
+  margin-top: 17px;
+}
+
+.native-app .device-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 11px;
+  row-gap: 10px;
+  padding: 14px;
+  text-align: left;
+  border-radius: 17px;
+  background: linear-gradient(150deg, var(--surface-subtle), var(--surface) 66%);
+}
+
+.native-app .device-card .section-top,
+.native-app .device-card .primary,
+.native-app .device-card .device-foot,
+.native-app .device-card .device-serial {
+  grid-column: 1 / -1;
+}
+
+.native-app .device-card .section-top {
+  display: flex;
+  padding: 0;
+  gap: 7px;
+}
+
+.native-app .device-card .section-top h2,
+.native-app .device-info > strong {
+  font-size: .96rem;
+  font-weight: 650;
+}
+
+.native-app .native-discovery {
+  color: var(--accent-strong);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: .72rem;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.native-app .native-device-icon,
+.native-app .native-welcome-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--accent-strong);
+  border-radius: 13px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-strong);
+}
+
+.native-app .device-info {
+  grid-column: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.native-app .device-state {
+  margin-top: 3px;
+  justify-content: flex-start;
+  line-height: 1.35;
+}
+
+.native-app .device-card .primary {
+  min-height: 48px;
+  margin: 1px 0 0;
+  border-radius: 12px;
+  font-size: .94rem;
+  font-weight: 650;
+}
+
+.native-app .device-card .device-foot,
+.native-app .device-card .device-serial {
+  display: block;
+  margin: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.native-app .inline-notice {
+  margin-top: 12px;
+  font-size: .81rem;
+  align-items: center;
+}
+
+.native-app .native-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.native-app .native-quick-actions button {
+  justify-content: flex-start;
+  min-height: 50px;
+  padding: 8px 9px;
+  gap: 6px;
+  white-space: normal;
+  text-align: left;
+  font-size: .83rem;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+.native-app .native-quick-actions svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.native-app .native-quick-actions svg:last-child {
+  margin-left: auto;
+}
+
+.native-app .encounter-card {
+  min-height: 70px;
+  border-radius: 14px;
+}
+
+.native-app .empty {
+  min-height: 0;
+  padding: 19px 15px;
+}
+
+.native-app .mobile-nav {
+  display: grid;
+  position: fixed;
+  inset: auto 0 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: var(--native-nav);
+  height: auto;
+  padding: 6px max(8px, env(safe-area-inset-right, 0px))
+    calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  gap: 4px;
+  z-index: 40;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.native-app .mobile-nav button {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 54px;
+  padding: 4px 1px;
+  gap: 3px;
+  font-size: .72rem;
+  line-height: 1.25;
+  border-radius: 12px;
+  color: var(--muted);
+}
+
+.native-app .mobile-nav button.active {
+  color: var(--accent-strong);
+  font-weight: 650;
+  background: var(--surface-subtle);
+}
+
+.native-app .toast {
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--native-nav) + 10px);
+  transform: translateX(-50%);
+}
+
+.native-app .modal-backdrop,
+.native-app .welcome-backdrop {
+  align-items: flex-end;
+  padding: max(10px, env(safe-area-inset-top, 0px)) 0 0;
+}
+
+.native-app .modal,
+.native-app .welcome {
+  display: block;
+  width: min(100%, 560px);
+  max-height: calc(100dvh - max(10px, env(safe-area-inset-top, 0px)));
+  overscroll-behavior: contain;
+  overflow: auto;
+  border-radius: 22px 22px 0 0;
+}
+
+.native-app .modal {
+  padding: 0 max(16px, env(safe-area-inset-right, 0px))
+    calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+
+.native-app .modal > header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 0;
+  margin-bottom: 12px;
+}
+
+.native-app .modal input:not([type="checkbox"]),
+.native-app .modal select,
+.native-app .modal textarea,
+.native-app main input:not([type="checkbox"]),
+.native-app main select {
+  font-size: 16px;
+}
+
+.native-app .welcome-copy {
+  padding: 18px max(18px, env(safe-area-inset-right, 0px))
+    calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+}
+
+.native-app .welcome-copy h1 {
+  font-size: 1.48rem;
+  margin: 10px 0 16px;
+}
+
+@media (max-width: 345px) {
+  .native-app .native-quick-actions svg:last-child {
+    display: none;
+  }
+}

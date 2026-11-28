@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type FormEvent,
 } from "react";
+import { Capacitor } from "@capacitor/core";
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -91,6 +92,7 @@ const NAV = [
 ] as const;
 const FIELD_LIST: Field[] = ["name", "major", "contact"];
 const TAG_GROUPS = ["兴趣", "专业", "研究", "职业"] as const;
+const NATIVE_LAYOUT = Capacitor.isNativePlatform() && !STUDY_MODE;
 
 function Modal({
   title,
@@ -646,6 +648,9 @@ export default function App() {
   const latestState = useRef(state);
   const [storageWarning, setStorageWarning] = useState(loaded.warning);
   const [tab, setTab] = useState<Tab>("radar");
+  useEffect(() => {
+    if (NATIVE_LAYOUT) window.scrollTo({ top: 0 });
+  }, [tab]);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
@@ -901,7 +906,7 @@ export default function App() {
   );
 
   return (
-    <div className={`app-shell${dialog || selected ? " has-dialog" : ""}`}>
+    <div className={`app-shell${NATIVE_LAYOUT ? " native-app" : ""}${dialog || selected ? " has-dialog" : ""}`}>
       {!state.onboarded && languageControl}
       <a className="skip-link" href="#main">
         {t("跳到主要内容")}
@@ -982,14 +987,18 @@ export default function App() {
       </aside>
       <div className="app-body" inert={!state.onboarded || undefined}>
         <header className="topbar">
-          <div className="breadcrumb">
-            <span className="mobile-brand">
-              <Radar size={20} /> UR
-            </span>
-            <span className="desktop-only">{t("我的空间")}</span>
-            <ChevronRight size={13} />
-            <strong>{t(NAV.find((n) => n.id === tab)?.label ?? "")}</strong>
-          </div>
+          {NATIVE_LAYOUT ? (
+            <h1 className="native-title">{t(NAV.find((n) => n.id === tab)?.label ?? "")}</h1>
+          ) : (
+            <div className="breadcrumb">
+              <span className="mobile-brand">
+                <Radar size={20} /> UR
+              </span>
+              <span className="desktop-only">{t("我的空间")}</span>
+              <ChevronRight size={13} />
+              <strong>{t(NAV.find((n) => n.id === tab)?.label ?? "")}</strong>
+            </div>
+          )}
           <div className="top-actions">
             {state.onboarded && languageControl}
             <button
@@ -1034,7 +1043,7 @@ export default function App() {
               {t(device.status.warning)}
             </div>
           )}
-          <div className="page-heading">
+          {!NATIVE_LAYOUT && <div className="page-heading">
             <div>
               <p className="eyebrow">
                 {tab === "radar"
@@ -1077,12 +1086,12 @@ export default function App() {
               )}
               {tab === "profile" ? t("隐私与数据") : t("我的设备")}
             </button>
-          </div>
+          </div>}
 
           {tab === "radar" && (
             <>
               <div className="dashboard-grid">
-                <section className="hero-card">
+                {!NATIVE_LAYOUT && <section className="hero-card">
                   <div className="hero-copy">
                     <Pill>
                       <span className="status-dot" />
@@ -1130,13 +1139,17 @@ export default function App() {
                     <span className="orbit-tag t2">{t("相似的方向")}</span>
                     <span className="orbit-label">FIND YOUR FREQUENCY</span>
                   </div>
-                </section>
+                </section>}
                 <section className="device-card">
                   <div className="section-top">
-                    <h2>{t("随身雷达")}</h2>
-                    <Bluetooth size={17} />
+                    <h2>{t(NATIVE_LAYOUT ? "雷达设备" : "随身雷达")}</h2>
+                    {NATIVE_LAYOUT ? (
+                      <span className="native-discovery">
+                        {active ? t("本机发现设置：开启") : t("本机发现设置：暂停")}
+                      </span>
+                    ) : <Bluetooth size={17} />}
                   </div>
-                  <div className="radar-device" aria-hidden="true">
+                  {!NATIVE_LAYOUT && <div className="radar-device" aria-hidden="true">
                     <div className="device-notch" />
                     <span>
                       UNIVERSITY
@@ -1146,7 +1159,12 @@ export default function App() {
                     <Radar size={37} strokeWidth={0.8} />
                     <i />
                     <small>nRF52832</small>
-                  </div>
+                  </div>}
+                  {NATIVE_LAYOUT && (
+                    <span className="native-device-icon" aria-hidden="true">
+                      <Radar size={26} strokeWidth={1.6} />
+                    </span>
+                  )}
                   <div className="device-info">
                     <strong>
                       {isDemo
@@ -1184,7 +1202,7 @@ export default function App() {
                     </p>
                   )}
                   <button
-                    className="outline full"
+                    className={NATIVE_LAYOUT ? "primary full" : "outline full"}
                     disabled={busy}
                     onClick={() =>
                       isDemo || device ? void sync() : setDialog("device")
@@ -1208,7 +1226,7 @@ export default function App() {
                   </small>
                 </section>
               </div>
-              <div className="under-hero">
+              {!NATIVE_LAYOUT && <div className="under-hero">
                 <span>
                   <ShieldCheck size={15} />
                   {t("记录的是相遇，不是附近人的实时位置。")}
@@ -1217,7 +1235,7 @@ export default function App() {
                   {t("了解工作方式")}
                   <ArrowRight size={14} />
                 </button>
-              </div>
+              </div>}
               {dirty && (
                 <div className="inline-notice">
                   <Bluetooth size={16} />
@@ -1230,17 +1248,34 @@ export default function App() {
                   </button>
                 </div>
               )}
+              {NATIVE_LAYOUT && (
+                <div className="native-quick-actions">
+                  <button className="outline" onClick={() => {
+                    setFilter("all");
+                    setTab("encounters");
+                  }}>
+                    <Layers3 size={19} aria-hidden="true" />
+                    {t("查看相遇")}
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                  <button className="outline" onClick={() => setDialog("intent")}>
+                    <SlidersHorizontal size={19} aria-hidden="true" />
+                    {t("编辑当前意向")}
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
               <div className="content-grid">
                 <section className="encounters-section">
                   <div className="section-heading">
                     <div>
                       <h2>
-                        {t("值得回顾的相遇")}{" "}
+                        {t(NATIVE_LAYOUT ? "最近相遇" : "值得回顾的相遇")}{" "}
                         <span className="count">
                           {matches.length.toString().padStart(2, "0")}
                         </span>
                       </h2>
-                      <p>{t("共同点，比一个分数更有意义")}</p>
+                      {!NATIVE_LAYOUT && <p>{t("共同点，比一个分数更有意义")}</p>}
                     </div>
                     <button
                       className="text-button"
@@ -1326,7 +1361,7 @@ export default function App() {
                       <ArrowUpRight size={14} />
                     </button>
                   </section>
-                  <section className="principle-card">
+                  {!NATIVE_LAYOUT && <section className="principle-card">
                     <span className="principle-icon">
                       <Handshake size={24} strokeWidth={1.3} />
                     </span>
@@ -1340,7 +1375,7 @@ export default function App() {
                       {t("查看我的公开范围")}
                       <ArrowRight size={14} />
                     </button>
-                  </section>
+                  </section>}
                 </aside>
               </div>
             </>
@@ -1619,7 +1654,7 @@ export default function App() {
             </div>
           )}
 
-          <footer className="page-footer">
+          {!NATIVE_LAYOUT && <footer className="page-footer">
             <span>
               <Radar size={14} /> UNIVERSITY RADAR{" "}
               <span className="footer-dot">/</span> {t("让连接回归自然")}
@@ -1629,7 +1664,7 @@ export default function App() {
               <span className="footer-dot">·</span>{" "}
               {profile.mode === "student" ? t("校园模式") : t("校友模式")}
             </span>
-          </footer>
+          </footer>}
         </main>
       </div>
       <nav
@@ -1664,7 +1699,7 @@ export default function App() {
             role="dialog"
             aria-modal="true"
           >
-            <div className="welcome-art">
+            {!NATIVE_LAYOUT && <div className="welcome-art">
               <Radar size={62} strokeWidth={0.8} />
               <p>UNIVERSITY RADAR</p>
               <h2>
@@ -1677,13 +1712,21 @@ export default function App() {
                 <br />
                 AT YOUR OWN PACE.
               </span>
-            </div>
+            </div>}
             <div className="welcome-copy">
-              <Pill>{t("欢迎来到你的同频空间")}</Pill>
+              {NATIVE_LAYOUT ? (
+                <span className="native-welcome-icon" aria-hidden="true">
+                  <Radar size={28} strokeWidth={1.6} />
+                </span>
+              ) : <Pill>{t("欢迎来到你的同频空间")}</Pill>}
               <h1 id="welcome-title">
-                {t("从一次安心的")}
-                <br />
-                {t("相遇开始。")}
+                {NATIVE_LAYOUT ? "University Radar" : (
+                  <>
+                    {t("从一次安心的")}
+                    <br />
+                    {t("相遇开始。")}
+                  </>
+                )}
               </h1>
               <div className="welcome-point">
                 <ShieldCheck size={20} />
