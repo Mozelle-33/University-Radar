@@ -53,7 +53,7 @@ jobs:
           xcrun simctl bootstatus "$sim" -b
           app="$RUNNER_TEMP/radar-derived/Build/Products/Debug-iphonesimulator/App.app"
           xcrun simctl install "$sim" "$app"
-          xcrun simctl status_bar "$sim" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState unplugged --batteryLevel 100
+          xcrun simctl status_bar "$sim" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState discharging --batteryLevel 100
           xcrun simctl launch "$sim" com.universityradar.app | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
           sleep 7
           xcrun simctl io "$sim" screenshot "$RUNNER_TEMP/evidence/ios-simulator-launch.png"
