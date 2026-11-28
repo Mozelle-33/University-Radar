@@ -1,7 +1,7 @@
 name: Week 11 iOS native builds
 on:
   push:
-    branches: ['codex/week11-ios-simulator']
+    branches: ['week11-ios-simulator']
 permissions:
   contents: read
 jobs:
