@@ -1,0 +1,66 @@
+name: Week 11 iOS simulator build
+on:
+  push:
+    branches: ['codex/week11-ios-simulator']
+permissions:
+  contents: read
+jobs:
+  ios-simulator:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: software/package-lock.json
+      - name: Build and sync the shared app
+        working-directory: software
+        run: |
+          npm ci
+          npm run native:sync
+      - name: Compile the iOS simulator app
+        run: |
+          mkdir -p "$RUNNER_TEMP/evidence"
+          {
+            printf 'Source: %s\n' "$(git rev-parse HEAD)"
+            printf 'Source base: %s\n' "$(git rev-parse HEAD^)"
+            xcodebuild -version
+            uname -m
+            xcrun --sdk iphonesimulator --show-sdk-version
+          } | tee "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          xcodebuild -project software/ios/App/App.xcodeproj -scheme App \
+            -configuration Debug -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/radar-derived" CODE_SIGNING_ALLOWED=NO build \
+            > "$RUNNER_TEMP/evidence/xcodebuild.log" 2>&1 || {
+              tail -100 "$RUNNER_TEMP/evidence/xcodebuild.log"
+              exit 1
+            }
+          app="$RUNNER_TEMP/radar-derived/Build/Products/Debug-iphonesimulator/App.app"
+          test -f "$app/App"
+          test -f "$app/public/index.html"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist" | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          file "$app/App" | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          ditto -c -k --keepParent "$app" "$RUNNER_TEMP/evidence/University-Radar-iOS-Simulator.zip"
+          tail -3 "$RUNNER_TEMP/evidence/xcodebuild.log" | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+      - name: Install and launch on iPhone Simulator
+        run: |
+          sim="$(xcrun simctl list devices available -j | jq -er '[.devices | to_entries[] | select(.key | contains("iOS-26-5")) | .value[] | select(.name | startswith("iPhone"))][0].udid')"
+          xcrun simctl boot "$sim"
+          xcrun simctl bootstatus "$sim" -b
+          app="$RUNNER_TEMP/radar-derived/Build/Products/Debug-iphonesimulator/App.app"
+          xcrun simctl install "$sim" "$app"
+          xcrun simctl status_bar "$sim" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState unplugged --batteryLevel 100
+          xcrun simctl launch "$sim" com.universityradar.app | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          sleep 7
+          xcrun simctl io "$sim" screenshot "$RUNNER_TEMP/evidence/ios-simulator-launch.png"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: university-radar-ios-week11
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: warn
+          retention-days: 30
