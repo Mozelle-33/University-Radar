@@ -54,9 +54,44 @@ jobs:
           app="$RUNNER_TEMP/radar-derived/Build/Products/Debug-iphonesimulator/App.app"
           xcrun simctl install "$sim" "$app"
           xcrun simctl status_bar "$sim" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState discharging --batteryLevel 100
-          xcrun simctl launch "$sim" com.universityradar.app | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
-          sleep 7
-          xcrun simctl io "$sim" screenshot "$RUNNER_TEMP/evidence/ios-simulator-launch.png"
+          capture="$RUNNER_TEMP/evidence/ios-simulator-launch.png"
+          if xcrun simctl help launch | grep -q -- '--stdout'; then
+            xcrun simctl launch --stdout="$RUNNER_TEMP/evidence/Simulator-App.out.txt" \
+              --stderr="$RUNNER_TEMP/evidence/Simulator-App.err.txt" "$sim" com.universityradar.app \
+              | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          else
+            xcrun simctl launch "$sim" com.universityradar.app | tee -a "$RUNNER_TEMP/evidence/BUILD-INFO.txt"
+          fi
+          cat > "$RUNNER_TEMP/check-view.swift" <<'SWIFT'
+          import Foundation
+          import Vision
+          let req = VNRecognizeTextRequest()
+          req.recognitionLevel = .accurate
+          req.recognitionLanguages = ["en-US", "zh-Hans"]
+          try VNImageRequestHandler(url: URL(fileURLWithPath: CommandLine.arguments[1])).perform([req])
+          let observed = (req.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ")
+          print(observed)
+          if !observed.localizedCaseInsensitiveContains("University Radar") { exit(1) }
+          SWIFT
+          /usr/bin/swiftc "$RUNNER_TEMP/check-view.swift" -o "$RUNNER_TEMP/check-view"
+          ready=false
+          for delay in 5 10 15 15 15 15; do
+            sleep "$delay"
+            xcrun simctl io "$sim" screenshot "$capture"
+            if "$RUNNER_TEMP/check-view" "$capture" > "$RUNNER_TEMP/evidence/Simulator-Visible-Text.txt"; then
+              cat "$RUNNER_TEMP/evidence/Simulator-Visible-Text.txt"
+              ready=true
+              break
+            fi
+          done
+          xcrun simctl spawn "$sim" log show --style compact --last 4m \
+            --predicate 'process == "App" OR processImagePath ENDSWITH "WebContent"' \
+            > "$RUNNER_TEMP/evidence/Simulator-Unified.log" || true
+          if ! "$ready"; then
+            cat "$RUNNER_TEMP/evidence/Simulator-App.out.txt" "$RUNNER_TEMP/evidence/Simulator-App.err.txt" || true
+            echo 'The University Radar onboarding screen did not render.'
+            exit 1
+          fi
       - name: Compile the unsigned iPhone device build
         if: ${{ !cancelled() }}
         run: |
