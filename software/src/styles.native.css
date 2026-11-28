@@ -66,7 +66,10 @@
 }
 
 .native-app .dashboard-grid,
-.native-app .content-grid {
+.native-app .content-grid,
+.native-app .right-column,
+.native-app .profile-layout,
+.native-app .network-grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
@@ -240,6 +243,12 @@
   right: auto;
   bottom: calc(var(--native-nav) + 10px);
   transform: translateX(-50%);
+  width: max-content;
+}
+
+.native-app.has-dialog .toast {
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  bottom: auto;
 }
 
 .native-app .modal-backdrop,
